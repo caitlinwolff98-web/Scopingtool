@@ -83,7 +83,7 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
 2. **Run**
    - Click "Start TGK Scoping Tool" button
    - Enter consolidation workbook name
-   - Categorize tabs using dropdown menus
+   - Categorize tabs using pop-up dialogs (enter numbers 1-9)
    - Select column type (Consolidation recommended)
 
 3. **Review**

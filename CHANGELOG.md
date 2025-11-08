@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-11-08
+
+### Changed
+- **Tab Categorization Interface**: Replaced worksheet-based categorization with pop-up dialog system
+  - Removed temporary worksheet creation for categorization
+  - Implemented sequential InputBox dialogs for each tab
+  - Users now enter numbers (1-9) to select categories
+  - Division names prompted immediately for segment tabs
+  - Added input validation with retry loop for invalid entries
+  - Improved user experience - no more tab switching required
+
+### Fixed
+- Resolved issue where users couldn't select categories in the worksheet-based interface
+- Eliminated confusion from worksheet-based dropdown selection
+
 ## [1.0.0] - 2024-11-08
 
 ### Added - Initial Release
@@ -42,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### User Interface
 - Welcome dialog with process overview
 - Workbook name input prompt
-- Tab categorization interface with dropdown validation
+- Tab categorization interface with pop-up dialog validation
 - Column type selection dialog
 - Progress status bar updates
 - Completion confirmation message
