@@ -1,0 +1,59 @@
+MIT License
+
+Copyright (c) 2024 TGK Consolidation Scoping Tool Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Additional Terms
+
+### Data Privacy
+This tool processes financial consolidation data locally on your computer. No data
+is transmitted to external servers or third parties. Users are responsible for 
+ensuring compliance with their organization's data security and privacy policies.
+
+### Usage Context
+This tool is designed specifically for audit and financial consolidation scoping
+purposes. Users are responsible for validating output and ensuring it meets their
+specific audit and compliance requirements.
+
+### No Warranty
+This software is provided without warranty of any kind. While every effort has been
+made to ensure reliability and accuracy, users should validate all output and use
+the tool at their own risk.
+
+### Liability Limitation
+The authors and contributors are not liable for any damages, financial losses, or
+audit failures that may result from the use or misuse of this tool. Users are
+responsible for verifying the accuracy and completeness of all output.
+
+### Trademark Notice
+"TGK" and related terms may be trademarks of their respective owners. This tool is
+not officially affiliated with, endorsed by, or sponsored by any TGK system vendor
+or provider.
+
+### Contribution
+Contributions to this project are welcome and will be considered to be licensed
+under the same MIT License. By contributing, you agree to license your contributions
+under this license.
+
+---
+
+For questions about this license, please refer to: https://opensource.org/licenses/MIT
