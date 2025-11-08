@@ -88,6 +88,8 @@ Private Function ShowCategorizationDialog() As Boolean
     Dim categoryList As String
     Dim categoryNumber As Integer
     Dim continueLoop As Boolean
+    Dim validationPassed As Boolean
+    Dim startOver As Boolean
     
     ' Show instructions
     MsgBox "Tab Categorization - Pop-up Mode" & vbCrLf & vbCrLf & _
@@ -115,100 +117,106 @@ Private Function ShowCategorizationDialog() As Boolean
                    "8 = " & CAT_PULL_WORKINGS & vbCrLf & _
                    "9 = " & CAT_UNCATEGORIZED
     
-    ' Loop through each tab and get category
-    For i = 1 To m_TabCount
-        continueLoop = True
-        
-        Do While continueLoop
-            ' Prompt for category
-            categoryChoice = InputBox( _
-                "Tab " & i & " of " & m_TabCount & vbCrLf & vbCrLf & _
-                "Tab Name: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
-                "Select a category (enter number 1-9):" & vbCrLf & vbCrLf & _
-                categoryList, _
-                "Categorize Tab", _
-                "3")
+    ' Main categorization loop with retry capability
+    validationPassed = False
+    Do While Not validationPassed
+        ' Loop through each tab and get category
+        For i = 1 To m_TabCount
+            continueLoop = True
             
-            ' Check if user cancelled
-            If categoryChoice = "" Then
-                response = MsgBox("Do you want to cancel the categorization process?", _
-                                 vbYesNo + vbQuestion, "Cancel Categorization")
-                If response = vbYes Then
-                    ShowCategorizationDialog = False
-                    Exit Function
+            Do While continueLoop
+                ' Prompt for category
+                categoryChoice = InputBox( _
+                    "Tab " & i & " of " & m_TabCount & vbCrLf & vbCrLf & _
+                    "Tab Name: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                    "Select a category (enter number 1-9):" & vbCrLf & vbCrLf & _
+                    categoryList, _
+                    "Categorize Tab", _
+                    "3")
+                
+                ' Check if user cancelled
+                If categoryChoice = "" Then
+                    response = MsgBox("Do you want to cancel the categorization process?", _
+                                     vbYesNo + vbQuestion, "Cancel Categorization")
+                    If response = vbYes Then
+                        ShowCategorizationDialog = False
+                        Exit Function
+                    Else
+                        ' Continue with current tab
+                        continueLoop = True
+                    End If
                 Else
-                    ' Continue with current tab
-                    continueLoop = True
+                    ' Validate input
+                    If IsNumeric(categoryChoice) Then
+                        categoryNumber = CInt(categoryChoice)
+                        
+                        Select Case categoryNumber
+                            Case 1
+                                m_TabCategories(i).Category = CAT_SEGMENT
+                                ' Prompt for division name
+                                divisionName = InputBox( _
+                                    "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
+                                    "Tab: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                                    "Example: UK, US, Europe, Asia", _
+                                    "Enter Division Name", _
+                                    "")
+                                m_TabCategories(i).DivisionName = Trim(divisionName)
+                                continueLoop = False
+                            Case 2
+                                m_TabCategories(i).Category = CAT_DISCONTINUED
+                                continueLoop = False
+                            Case 3
+                                m_TabCategories(i).Category = CAT_INPUT_CONTINUING
+                                continueLoop = False
+                            Case 4
+                                m_TabCategories(i).Category = CAT_JOURNALS_CONTINUING
+                                continueLoop = False
+                            Case 5
+                                m_TabCategories(i).Category = CAT_CONSOLE_CONTINUING
+                                continueLoop = False
+                            Case 6
+                                m_TabCategories(i).Category = CAT_BS
+                                continueLoop = False
+                            Case 7
+                                m_TabCategories(i).Category = CAT_IS
+                                continueLoop = False
+                            Case 8
+                                m_TabCategories(i).Category = CAT_PULL_WORKINGS
+                                continueLoop = False
+                            Case 9
+                                m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                                continueLoop = False
+                            Case Else
+                                MsgBox "Invalid number. Please enter a number between 1 and 9.", vbExclamation
+                                continueLoop = True
+                        End Select
+                    Else
+                        MsgBox "Invalid input. Please enter a number between 1 and 9.", vbExclamation
+                        continueLoop = True
+                    End If
                 End If
-            Else
-                ' Validate input
-                If IsNumeric(categoryChoice) Then
-                    categoryNumber = CInt(categoryChoice)
-                    
-                    Select Case categoryNumber
-                        Case 1
-                            m_TabCategories(i).Category = CAT_SEGMENT
-                            ' Prompt for division name
-                            divisionName = InputBox( _
-                                "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
-                                "Tab: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
-                                "Example: UK, US, Europe, Asia", _
-                                "Enter Division Name", _
-                                "")
-                            m_TabCategories(i).DivisionName = Trim(divisionName)
-                            continueLoop = False
-                        Case 2
-                            m_TabCategories(i).Category = CAT_DISCONTINUED
-                            continueLoop = False
-                        Case 3
-                            m_TabCategories(i).Category = CAT_INPUT_CONTINUING
-                            continueLoop = False
-                        Case 4
-                            m_TabCategories(i).Category = CAT_JOURNALS_CONTINUING
-                            continueLoop = False
-                        Case 5
-                            m_TabCategories(i).Category = CAT_CONSOLE_CONTINUING
-                            continueLoop = False
-                        Case 6
-                            m_TabCategories(i).Category = CAT_BS
-                            continueLoop = False
-                        Case 7
-                            m_TabCategories(i).Category = CAT_IS
-                            continueLoop = False
-                        Case 8
-                            m_TabCategories(i).Category = CAT_PULL_WORKINGS
-                            continueLoop = False
-                        Case 9
-                            m_TabCategories(i).Category = CAT_UNCATEGORIZED
-                            continueLoop = False
-                        Case Else
-                            MsgBox "Invalid number. Please enter a number between 1 and 9.", vbExclamation
-                            continueLoop = True
-                    End Select
-                Else
-                    MsgBox "Invalid input. Please enter a number between 1 and 9.", vbExclamation
-                    continueLoop = True
-                End If
-            End If
-        Loop
-    Next i
-    
-    ' Validate single-tab categories
-    If Not ValidateSingleTabCategories() Then
-        response = MsgBox("Validation failed. Would you like to start over?", _
-                         vbYesNo + vbQuestion, "Validation Error")
-        If response = vbYes Then
-            ' Reset and try again
-            For i = 1 To m_TabCount
-                m_TabCategories(i).Category = CAT_UNCATEGORIZED
-                m_TabCategories(i).DivisionName = ""
-            Next i
-            ShowCategorizationDialog = ShowCategorizationDialog()
+            Loop
+        Next i
+        
+        ' Validate single-tab categories
+        If ValidateSingleTabCategories() Then
+            validationPassed = True
         Else
-            ShowCategorizationDialog = False
+            response = MsgBox("Validation failed. Would you like to start over?", _
+                             vbYesNo + vbQuestion, "Validation Error")
+            If response = vbYes Then
+                ' Reset and try again
+                For i = 1 To m_TabCount
+                    m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                    m_TabCategories(i).DivisionName = ""
+                Next i
+                ' Loop will continue
+            Else
+                ShowCategorizationDialog = False
+                Exit Function
+            End If
         End If
-        Exit Function
-    End If
+    Loop
     
     ' Show uncategorized tabs
     ShowUncategorizedTabs
