@@ -60,13 +60,15 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
    - Create new workbook
    - Save as `TGK_Scoping_Tool.xlsm`
 
-3. **Import VBA Modules**
+3. **Import VBA Modules** (in this order)
    - Press `Alt + F11` (VBA Editor)
    - Import all `.bas` files from `VBA_Modules` folder:
+     - `ModConfig.bas` (import first - dependencies)
      - `ModMain.bas`
      - `ModTabCategorization.bas`
      - `ModDataProcessing.bas`
      - `ModTableGeneration.bas`
+     - `ModPowerBIIntegration.bas`
 
 4. **Add Button**
    - Return to Excel
@@ -101,6 +103,7 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
 | Document | Description |
 |----------|-------------|
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete user guide, technical specs, troubleshooting |
+| [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) | v1.1.0 improvements, bug fixes, and enhancements |
 | [POWERBI_INTEGRATION_GUIDE.md](POWERBI_INTEGRATION_GUIDE.md) | Step-by-step Power BI setup and DAX measures |
 | [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) | Detailed installation instructions |
 | [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) | Real-world usage scenarios and examples |
@@ -336,7 +339,17 @@ For questions, issues, or customization:
 
 ## Version History
 
-### v1.0.0 (Current)
+### v1.1.0 (Current - November 2024)
+**Major Update - Enhanced Power BI Integration**
+- 🔧 Fixed ambiguous name error in VBA code
+- ✨ Added ModConfig for centralized configuration
+- ✨ Added ModPowerBIIntegration for direct Power BI support
+- ✨ Added 4 new Power BI integration sheets
+- 🚀 Improved code robustness and error handling
+- 📚 Enhanced documentation
+- See [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) for details
+
+### v1.0.0
 - Initial release
 - Core tab categorization
 - Data processing engine
@@ -346,11 +359,15 @@ For questions, issues, or customization:
 
 ## Roadmap
 
+### v1.2.0 (Planned)
+- [ ] Direct Power BI API integration
+- [ ] Automated threshold detection
+- [ ] Enhanced scoping suggestions
+- [ ] Historical comparison features
+
 ### Future Enhancements
 - [ ] Multi-language support
 - [ ] Custom formula detection
-- [ ] Direct Power BI integration
-- [ ] Historical comparison features
 - [ ] Automated testing framework
 - [ ] Enhanced error recovery
 - [ ] Template library for common structures
@@ -361,8 +378,8 @@ Designed for audit professionals working with TGK consolidation systems. Built t
 
 ---
 
-**Current Version:** 1.0.0  
-**Last Updated:** 2024  
+**Current Version:** 1.1.0  
+**Last Updated:** November 2024  
 **Platform:** Microsoft Excel with VBA  
 **Integration:** Microsoft Power BI
 

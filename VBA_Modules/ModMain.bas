@@ -78,9 +78,20 @@ Public Sub StartScopingTool()
     Application.Calculation = xlCalculationAutomatic
     Application.ScreenUpdating = True
     
-    ' Step 8: Display completion message
+    ' Step 8: Create Power BI integration assets
+    Application.StatusBar = "Creating Power BI integration assets..."
+    ModPowerBIIntegration.CreateAllPowerBIAssets
+    Application.StatusBar = False
+    
+    ' Step 9: Display completion message
     MsgBox "Scoping tool completed successfully!" & vbCrLf & vbCrLf & _
-           "Tables have been created in: " & g_OutputWorkbook.Name, _
+           "Tables have been created in: " & g_OutputWorkbook.Name & vbCrLf & vbCrLf & _
+           "Power BI integration assets have been added:" & vbCrLf & _
+           "- Metadata sheet with tool information" & vbCrLf & _
+           "- Scoping configuration template" & vbCrLf & _
+           "- DAX measures guide" & vbCrLf & _
+           "- Entity scoping summary" & vbCrLf & vbCrLf & _
+           "See POWERBI_INTEGRATION_GUIDE.md for next steps.", _
            vbInformation, "Process Complete"
     
     Exit Sub
@@ -112,19 +123,8 @@ End Function
 Private Function SetSourceWorkbook(workbookName As String) As Boolean
     On Error Resume Next
     
-    ' Try to find workbook by exact name
-    Set g_SourceWorkbook = Workbooks(workbookName)
-    
-    If g_SourceWorkbook Is Nothing Then
-        ' Try without extension
-        Dim nameWithoutExt As String
-        nameWithoutExt = Replace(Replace(workbookName, ".xlsx", ""), ".xlsm", "")
-        Set g_SourceWorkbook = Workbooks(nameWithoutExt & ".xlsx")
-        
-        If g_SourceWorkbook Is Nothing Then
-            Set g_SourceWorkbook = Workbooks(nameWithoutExt & ".xlsm")
-        End If
-    End If
+    ' Use centralized function from ModConfig
+    Set g_SourceWorkbook = ModConfig.GetWorkbookByName(workbookName)
     
     SetSourceWorkbook = Not (g_SourceWorkbook Is Nothing)
     On Error GoTo 0
