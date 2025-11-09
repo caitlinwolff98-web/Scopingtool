@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2024-11-09
+
+### Fixed
+- **Category Selection Dialog Flow**: Fixed critical bugs that prevented reliable category selection
+  - Fixed recursive call issue in `ShowUncategorizedTabs()` that could cause dialog loops
+  - Corrected return value handling to ensure proper restart functionality
+  - Moved uncategorized tabs check inside validation loop for better user flow
+  - Added automatic default division name ("Division_X") when user leaves segment division name empty
+  - Enhanced confirmation dialogs for restart decisions to prevent confusion
+  - Improved error recovery when users want to recategorize tabs
+
+### Improved
+- Better user guidance during category selection process
+- More reliable pop-up dialog flow from start to finish
+- Enhanced code comments for maintainability
+
 ## [1.1.0] - 2024-11-08
 
 ### Changed

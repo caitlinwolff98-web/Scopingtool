@@ -92,13 +92,23 @@ The tool will present pop-up dialogs to categorize each tab from your consolidat
 **Instructions:**
 
 1. Read the categorization instructions in the initial pop-up
-2. For each tab, a pop-up dialog will appear showing the tab name
+2. For each tab, a pop-up dialog will appear showing the tab name and the full list of categories
 3. Enter the number (1-9) corresponding to the desired category
 4. For segment tabs (category 1), you'll be prompted to enter a division name (e.g., "UK", "US", "Europe")
+   - If you leave the division name blank, it will automatically use "Division_1", "Division_2", etc.
 5. If you enter an invalid number, you'll be prompted to try again
-6. After all tabs are categorized, the tool validates your selections
-7. If validation fails, you can choose to start over or cancel
-8. Review any uncategorized tabs and confirm to proceed
+6. If you click Cancel on any dialog, you'll be asked if you want to cancel the entire process
+7. After all tabs are categorized, the tool validates your selections:
+   - Ensures single-only categories have only one tab assigned
+   - Checks that required categories are present
+8. If validation fails, you can choose to start over or cancel
+9. Review any uncategorized tabs and confirm whether to proceed or restart categorization
+
+**Important Notes:**
+- All category selection is done through pop-up dialogs (InputBox and MsgBox)
+- No worksheet tabs are created for categorization
+- You can restart the categorization process at any time if you make a mistake
+- The default category suggestion is "3" (Input Continuing Operations) as it is required
 
 ### Step 4: Select Column Type
 
