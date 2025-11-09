@@ -28,6 +28,12 @@ Public Function GetTabByCategory(categoryName As String) As Worksheet
     On Error GoTo 0
 End Function
 
+' Get tabs for a specific category
+Public Function GetTabsForCategory(categoryName As String) As Collection
+    ' Call the implementation in ModTabCategorization
+    Set GetTabsForCategory = ModTabCategorization.GetTabsForCategory(categoryName)
+End Function
+
 ' Create FSLi Key Table with all FSLi entries
 Public Sub CreateFSLiKeyTable()
     On Error GoTo ErrorHandler

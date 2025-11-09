@@ -620,16 +620,19 @@ End Sub
 
 ' Create FSLi Key Table
 Private Sub CreateFSLiKeyTable()
-    ' This is now handled by ModTableGeneration
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreateFSLiKeyTable
 End Sub
 
 ' Create Pack Number Company Table
 Private Sub CreatePackNumberCompanyTable()
-    ' This is now handled by ModTableGeneration
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreatePackNumberCompanyTable
 End Sub
 
 ' Create Percentage Tables
 Private Sub CreatePercentageTables()
-    ' This is now handled by ModTableGeneration
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreatePercentageTables
 End Sub
 
