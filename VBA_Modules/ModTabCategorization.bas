@@ -142,7 +142,7 @@ Private Function ShowCategorizationDialog() As Boolean
                         ShowCategorizationDialog = False
                         Exit Function
                     Else
-                        ' Continue with current tab
+                        ' Continue with current tab - stay in loop to show InputBox again
                         continueLoop = True
                     End If
                 Else
@@ -160,6 +160,11 @@ Private Function ShowCategorizationDialog() As Boolean
                                     "Example: UK, US, Europe, Asia", _
                                     "Enter Division Name", _
                                     "")
+                                
+                                ' If division name is empty, prompt again or use default
+                                If Trim(divisionName) = "" Then
+                                    divisionName = "Division_" & i
+                                End If
                                 m_TabCategories(i).DivisionName = Trim(divisionName)
                                 continueLoop = False
                             Case 2
@@ -200,7 +205,25 @@ Private Function ShowCategorizationDialog() As Boolean
         
         ' Validate single-tab categories
         If ValidateSingleTabCategories() Then
-            validationPassed = True
+            ' Show uncategorized tabs and check if user wants to proceed
+            If ShowUncategorizedTabs() Then
+                validationPassed = True
+            Else
+                ' User wants to restart - reset and continue loop
+                response = MsgBox("Do you want to start over with categorization?", _
+                                 vbYesNo + vbQuestion, "Restart Categorization")
+                If response = vbYes Then
+                    ' Reset and try again
+                    For i = 1 To m_TabCount
+                        m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                        m_TabCategories(i).DivisionName = ""
+                    Next i
+                    ' Loop will continue
+                Else
+                    ShowCategorizationDialog = False
+                    Exit Function
+                End If
+            End If
         Else
             response = MsgBox("Validation failed. Would you like to start over?", _
                              vbYesNo + vbQuestion, "Validation Error")
@@ -217,9 +240,6 @@ Private Function ShowCategorizationDialog() As Boolean
             End If
         End If
     Loop
-    
-    ' Show uncategorized tabs
-    ShowUncategorizedTabs
     
     ShowCategorizationDialog = True
     Exit Function
@@ -260,8 +280,8 @@ Private Function ValidateSingleTabCategories() As Boolean
     ValidateSingleTabCategories = True
 End Function
 
-' Show uncategorized tabs to user
-Private Sub ShowUncategorizedTabs()
+' Show uncategorized tabs to user and return whether to continue
+Private Function ShowUncategorizedTabs() As Boolean
     Dim i As Long
     Dim uncategorizedList As String
     Dim count As Long
@@ -285,11 +305,14 @@ Private Sub ShowUncategorizedTabs()
                          vbYesNo + vbQuestion, "Uncategorized Tabs")
         
         If response = vbNo Then
-            ' User wants to go back and categorize
-            ShowCategorizationDialog
+            ' User wants to restart categorization
+            ShowUncategorizedTabs = False
+            Exit Function
         End If
     End If
-End Sub
+    
+    ShowUncategorizedTabs = True
+End Function
 
 ' Validate that all required categories are assigned
 Public Function ValidateCategories() As Boolean
