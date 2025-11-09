@@ -323,6 +323,212 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
                                  fsliList As Collection, columnType As String)
     On Error GoTo ErrorHandler
     
+    CreateGenericTable sourceWs, columns, fsliList, columnType, "Full Input Table"
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error creating Full Input Table: " & Err.Description, vbCritical
+End Sub
+
+' Find column index for a specific pack
+Private Function FindPackColumn(columns As Collection, packName As String, columnType As String) As Long
+    Dim i As Long
+    Dim colInfo As Object
+    
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("PackName") = packName And colInfo("ColumnType") = columnType Then
+            FindPackColumn = colInfo("ColumnIndex")
+            Exit Function
+        End If
+    Next i
+    
+    FindPackColumn = 0
+End Function
+
+' Process Discontinued tab
+Private Sub ProcessDiscontinuedTab(ws As Worksheet)
+    On Error GoTo ErrorHandler
+    
+    Dim columns As Collection
+    Dim fsliList As Collection
+    Dim selectedColumnType As String
+    
+    ' Unmerge all cells
+    ws.Cells.UnMerge
+    
+    ' Detect columns
+    Set columns = DetectColumns(ws)
+    
+    ' Use same column type as Input tab
+    selectedColumnType = "Consolidation/Consolidation"
+    
+    ' Check if we have columns of this type
+    Dim hasColumns As Boolean
+    hasColumns = False
+    Dim i As Long
+    Dim colInfo As Object
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("ColumnType") = selectedColumnType Then
+            hasColumns = True
+            Exit For
+        End If
+    Next i
+    
+    If Not hasColumns Then
+        selectedColumnType = "Original/Entity"
+    End If
+    
+    ' Analyze FSLi structure
+    Set fsliList = AnalyzeFSLiStructure(ws, selectedColumnType)
+    
+    ' Create Discontinued Table
+    CreateDiscontinuedTable ws, columns, fsliList, selectedColumnType
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Discontinued tab: " & Err.Description, vbCritical
+End Sub
+
+' Process Journals tab
+Private Sub ProcessJournalsTab(ws As Worksheet)
+    On Error GoTo ErrorHandler
+    
+    Dim columns As Collection
+    Dim fsliList As Collection
+    Dim selectedColumnType As String
+    
+    ' Unmerge all cells
+    ws.Cells.UnMerge
+    
+    ' Detect columns
+    Set columns = DetectColumns(ws)
+    
+    ' Use same column type as Input tab
+    selectedColumnType = "Consolidation/Consolidation"
+    
+    ' Check if we have columns of this type
+    Dim hasColumns As Boolean
+    hasColumns = False
+    Dim i As Long
+    Dim colInfo As Object
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("ColumnType") = selectedColumnType Then
+            hasColumns = True
+            Exit For
+        End If
+    Next i
+    
+    If Not hasColumns Then
+        selectedColumnType = "Original/Entity"
+    End If
+    
+    ' Analyze FSLi structure
+    Set fsliList = AnalyzeFSLiStructure(ws, selectedColumnType)
+    
+    ' Create Journals Table
+    CreateJournalsTable ws, columns, fsliList, selectedColumnType
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Journals tab: " & Err.Description, vbCritical
+End Sub
+
+' Process Console tab
+Private Sub ProcessConsoleTab(ws As Worksheet)
+    On Error GoTo ErrorHandler
+    
+    Dim columns As Collection
+    Dim fsliList As Collection
+    Dim selectedColumnType As String
+    
+    ' Unmerge all cells
+    ws.Cells.UnMerge
+    
+    ' Detect columns
+    Set columns = DetectColumns(ws)
+    
+    ' Use same column type as Input tab
+    selectedColumnType = "Consolidation/Consolidation"
+    
+    ' Check if we have columns of this type
+    Dim hasColumns As Boolean
+    hasColumns = False
+    Dim i As Long
+    Dim colInfo As Object
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("ColumnType") = selectedColumnType Then
+            hasColumns = True
+            Exit For
+        End If
+    Next i
+    
+    If Not hasColumns Then
+        selectedColumnType = "Original/Entity"
+    End If
+    
+    ' Analyze FSLi structure
+    Set fsliList = AnalyzeFSLiStructure(ws, selectedColumnType)
+    
+    ' Create Console Table
+    CreateConsoleTable ws, columns, fsliList, selectedColumnType
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Console tab: " & Err.Description, vbCritical
+End Sub
+
+' Create Journals Table
+Private Sub CreateJournalsTable(sourceWs As Worksheet, columns As Collection, _
+                                fsliList As Collection, columnType As String)
+    On Error GoTo ErrorHandler
+    
+    CreateGenericTable sourceWs, columns, fsliList, columnType, "Journals Table"
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error creating Journals Table: " & Err.Description, vbCritical
+End Sub
+
+' Create Console Table
+Private Sub CreateConsoleTable(sourceWs As Worksheet, columns As Collection, _
+                               fsliList As Collection, columnType As String)
+    On Error GoTo ErrorHandler
+    
+    CreateGenericTable sourceWs, columns, fsliList, columnType, "Full Console Table"
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error creating Console Table: " & Err.Description, vbCritical
+End Sub
+
+' Create Discontinued Table
+Private Sub CreateDiscontinuedTable(sourceWs As Worksheet, columns As Collection, _
+                                    fsliList As Collection, columnType As String)
+    On Error GoTo ErrorHandler
+    
+    CreateGenericTable sourceWs, columns, fsliList, columnType, "Discontinued Table"
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error creating Discontinued Table: " & Err.Description, vbCritical
+End Sub
+
+' Generic table creation function
+Private Sub CreateGenericTable(sourceWs As Worksheet, columns As Collection, _
+                               fsliList As Collection, columnType As String, tableName As String)
+    On Error GoTo ErrorHandler
+    
     Dim outputWs As Worksheet
     Dim outRow As Long
     Dim outCol As Long
@@ -332,10 +538,13 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     Dim fsliInfo As Object
     Dim packList As Collection
     Dim packName As String
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim tbl As ListObject
     
     ' Create output worksheet
     Set outputWs = g_OutputWorkbook.Worksheets.Add
-    outputWs.Name = "Full Input Table"
+    outputWs.Name = tableName
     
     ' Get list of packs with selected column type
     Set packList = New Collection
@@ -356,14 +565,6 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     For i = 1 To fsliList.count
         Set fsliInfo = fsliList(i)
         outputWs.Cells(1, outCol).Value = fsliInfo("FSLiName")
-        
-        ' Add metadata
-        If fsliInfo("IsTotal") Then
-            outputWs.Cells(1, outCol).Value = outputWs.Cells(1, outCol).Value & " (Total)"
-        ElseIf fsliInfo("IsSubtotal") Then
-            outputWs.Cells(1, outCol).Value = outputWs.Cells(1, outCol).Value & " (Subtotal)"
-        End If
-        
         outCol = outCol + 1
     Next i
     
@@ -393,120 +594,45 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
         outRow = outRow + 1
     Next i
     
-    ' Format as table
-    FormatAsTable outputWs
+    ' Get dimensions for table
+    lastRow = outputWs.Cells(outputWs.Rows.count, 1).End(xlUp).row
+    lastCol = outputWs.Cells(1, outputWs.columns.count).End(xlToLeft).Column
     
-    Exit Sub
-    
-ErrorHandler:
-    MsgBox "Error creating Full Input Table: " & Err.Description, vbCritical
-End Sub
-
-' Find column index for a specific pack
-Private Function FindPackColumn(columns As Collection, packName As String, columnType As String) As Long
-    Dim i As Long
-    Dim colInfo As Object
-    
-    For i = 1 To columns.count
-        Set colInfo = columns(i)
-        If colInfo("PackName") = packName And colInfo("ColumnType") = columnType Then
-            FindPackColumn = colInfo("ColumnIndex")
-            Exit Function
-        End If
-    Next i
-    
-    FindPackColumn = 0
-End Function
-
-' Format worksheet as table
-Private Sub FormatAsTable(ws As Worksheet)
-    On Error Resume Next
-    
-    Dim lastRow As Long
-    Dim lastCol As Long
-    Dim tableRange As Range
-    
-    lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).row
-    lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
-    
+    ' Create actual Excel Table
     If lastRow > 1 And lastCol > 1 Then
-        Set tableRange = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol))
-        
-        ' Format headers
-        ws.Rows(1).Font.Bold = True
-        ws.Rows(1).Interior.Color = RGB(68, 114, 196)
-        ws.Rows(1).Font.Color = RGB(255, 255, 255)
-        
-        ' Auto-fit columns
-        ws.columns.AutoFit
-        
-        ' Add borders
-        tableRange.Borders.LineStyle = xlContinuous
+        On Error Resume Next
+        Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, lastCol)), , xlYes)
+        If Not tbl Is Nothing Then
+            tbl.Name = Replace(tableName, " ", "_")
+            tbl.TableStyle = "TableStyleMedium2"
+        End If
+        On Error GoTo ErrorHandler
     End If
     
-    On Error GoTo 0
-End Sub
-
-' Process Discontinued tab
-Private Sub ProcessDiscontinuedTab(ws As Worksheet)
-    On Error GoTo ErrorHandler
-    
-    ' Example logic for processing the Discontinued tab
-    MsgBox "Processing Discontinued tab: " & ws.Name, vbInformation
-    
-    ' Add your processing logic here (similar to ProcessInputTab)
+    ' Auto-fit columns
+    outputWs.columns.AutoFit
     
     Exit Sub
     
 ErrorHandler:
-    MsgBox "Error processing Discontinued tab: " & Err.Description, vbCritical
-End Sub
-
-' Process Journals tab
-Private Sub ProcessJournalsTab(ws As Worksheet)
-    On Error GoTo ErrorHandler
-    
-    ' Example logic for processing the Journals tab
-    MsgBox "Processing Journals tab: " & ws.Name, vbInformation
-    
-    ' Add your processing logic here (similar to ProcessInputTab)
-    
-    Exit Sub
-    
-ErrorHandler:
-    MsgBox "Error processing Journals tab: " & Err.Description, vbCritical
-End Sub
-
-' Process Console tab
-Private Sub ProcessConsoleTab(ws As Worksheet)
-    On Error GoTo ErrorHandler
-    
-    ' Example logic for processing the Console tab
-    MsgBox "Processing Console tab: " & ws.Name, vbInformation
-    
-    ' Add your processing logic here (similar to ProcessInputTab)
-    
-    Exit Sub
-    
-ErrorHandler:
-    MsgBox "Error processing Console tab: " & Err.Description, vbCritical
+    MsgBox "Error creating " & tableName & ": " & Err.Description, vbCritical
 End Sub
 
 ' Create FSLi Key Table
 Private Sub CreateFSLiKeyTable()
-    ' Placeholder for FSLi Key Table logic
-    MsgBox "FSLi Key Table creation logic goes here.", vbInformation
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreateFSLiKeyTable
 End Sub
 
 ' Create Pack Number Company Table
 Private Sub CreatePackNumberCompanyTable()
-    ' Placeholder for Pack Number Company Table logic
-    MsgBox "Pack Number Company Table creation logic goes here.", vbInformation
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreatePackNumberCompanyTable
 End Sub
 
 ' Create Percentage Tables
 Private Sub CreatePercentageTables()
-    ' Placeholder for Percentage Tables logic
-    MsgBox "Percentage Tables creation logic goes here.", vbInformation
+    ' Call the implementation in ModTableGeneration
+    ModTableGeneration.CreatePercentageTables
 End Sub
 
