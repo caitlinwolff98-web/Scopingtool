@@ -1,4 +1,3 @@
-Attribute VB_Name = "ModTabCategorization"
 Option Explicit
 
 ' ============================================================================
@@ -22,9 +21,9 @@ Public Const CAT_UNCATEGORIZED = "Uncategorized"
 
 ' Structure to hold tab categorization
 Private Type TabCategory
-    TabName As String
+    tabName As String
     Category As String
-    DivisionName As String ' Used for segment tabs
+    divisionName As String ' Used for segment tabs
 End Type
 
 Private m_TabCategories() As TabCategory
@@ -38,14 +37,14 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
     Dim userForm As Object
     
     ' Initialize array
-    m_TabCount = tabList.Count
+    m_TabCount = tabList.count
     ReDim m_TabCategories(1 To m_TabCount)
     
     ' Populate tab names
-    For i = 1 To tabList.Count
-        m_TabCategories(i).TabName = tabList(i)
+    For i = 1 To tabList.count
+        m_TabCategories(i).tabName = tabList(i)
         m_TabCategories(i).Category = CAT_UNCATEGORIZED
-        m_TabCategories(i).DivisionName = ""
+        m_TabCategories(i).divisionName = ""
     Next i
     
     ' Show categorization interface
@@ -92,8 +91,8 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
         End If
         On Error GoTo ErrorHandler
         
-        tabInfo("TabName") = m_TabCategories(i).TabName
-        tabInfo("DivisionName") = m_TabCategories(i).DivisionName
+        tabInfo("TabName") = m_TabCategories(i).tabName
+        tabInfo("DivisionName") = m_TabCategories(i).divisionName
         
         g_TabCategories(m_TabCategories(i).Category).Add tabInfo
     Next i
@@ -159,7 +158,7 @@ Private Function ShowCategorizationDialog() As Boolean
                 ' Prompt for category
                 categoryChoice = InputBox( _
                     "Tab " & i & " of " & m_TabCount & vbCrLf & vbCrLf & _
-                    "Tab Name: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                    "Tab Name: " & m_TabCategories(i).tabName & vbCrLf & vbCrLf & _
                     "Select a category (enter number 1-10):" & vbCrLf & vbCrLf & _
                     categoryList, _
                     "Categorize Tab", _
@@ -187,7 +186,7 @@ Private Function ShowCategorizationDialog() As Boolean
                                 ' Prompt for division name
                                 divisionName = InputBox( _
                                     "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
-                                    "Tab: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                                    "Tab: " & m_TabCategories(i).tabName & vbCrLf & vbCrLf & _
                                     "Examples: UK Division, Properties Division, BIH division, etc.", _
                                     "Enter Division Name", _
                                     "")
@@ -196,7 +195,7 @@ Private Function ShowCategorizationDialog() As Boolean
                                 If Trim(divisionName) = "" Then
                                     divisionName = "Division_" & i
                                 End If
-                                m_TabCategories(i).DivisionName = Trim(divisionName)
+                                m_TabCategories(i).divisionName = Trim(divisionName)
                                 continueLoop = False
                             Case 2
                                 m_TabCategories(i).Category = CAT_DISCONTINUED
@@ -250,7 +249,7 @@ Private Function ShowCategorizationDialog() As Boolean
                     ' Reset and try again
                     For i = 1 To m_TabCount
                         m_TabCategories(i).Category = CAT_UNCATEGORIZED
-                        m_TabCategories(i).DivisionName = ""
+                        m_TabCategories(i).divisionName = ""
                     Next i
                     ' Loop will continue
                 Else
@@ -265,7 +264,7 @@ Private Function ShowCategorizationDialog() As Boolean
                 ' Reset and try again
                 For i = 1 To m_TabCount
                     m_TabCategories(i).Category = CAT_UNCATEGORIZED
-                    m_TabCategories(i).DivisionName = ""
+                    m_TabCategories(i).divisionName = ""
                 Next i
                 ' Loop will continue
             Else
@@ -327,7 +326,7 @@ Private Function ShowUncategorizedTabs() As Boolean
     For i = 1 To m_TabCount
         If m_TabCategories(i).Category = CAT_UNCATEGORIZED Then
             count = count + 1
-            uncategorizedList = uncategorizedList & "- " & m_TabCategories(i).TabName & vbCrLf
+            uncategorizedList = uncategorizedList & "- " & m_TabCategories(i).tabName & vbCrLf
         End If
     Next i
     
@@ -401,7 +400,7 @@ Public Function GetCategoryForTab(tabName As String) As String
     Dim i As Long
     
     For i = 1 To m_TabCount
-        If m_TabCategories(i).TabName = tabName Then
+        If m_TabCategories(i).tabName = tabName Then
             GetCategoryForTab = m_TabCategories(i).Category
             Exit Function
         End If
@@ -415,8 +414,8 @@ Public Function GetDivisionName(tabName As String) As String
     Dim i As Long
     
     For i = 1 To m_TabCount
-        If m_TabCategories(i).TabName = tabName Then
-            GetDivisionName = m_TabCategories(i).DivisionName
+        If m_TabCategories(i).tabName = tabName Then
+            GetDivisionName = m_TabCategories(i).divisionName
             Exit Function
         End If
     Next i
