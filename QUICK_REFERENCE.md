@@ -19,12 +19,13 @@
 |----------|-----|----------|---------|
 | **TGK Input Continuing** | 1 | ✓ Yes | TGK_Input_Continuing |
 | TGK Segment Tabs | Many | No | TGK_UK, TGK_US |
-| TGK Discontinued | 1 | No | TGK_Discontinued |
+| Discontinued Ops | 1 | No | TGK_Discontinued |
 | TGK Journals Continuing | 1 | No | TGK_Journals |
-| TGK Console Continuing | 1 | No | TGK_Console |
+| TGK Consol Continuing | 1 | No | TGK_Consol |
 | TGK BS Tab | 1 | No | Balance_Sheet |
 | TGK IS Tab | 1 | No | Income_Statement |
-| Pull Workings | Many | No | Working_Paper_1 |
+| Paul workings | Many | No | Working_Paper_1 |
+| Trial Balance | 1 | No | Trial_Balance |
 
 **Note:** Only Input Continuing is required
 

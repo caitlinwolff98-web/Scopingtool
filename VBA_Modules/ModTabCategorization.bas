@@ -10,13 +10,14 @@ Option Explicit
 
 ' Category constants
 Public Const CAT_SEGMENT = "TGK Segment Tabs"
-Public Const CAT_DISCONTINUED = "TGK Discontinued Opt Tab"
+Public Const CAT_DISCONTINUED = "Discontinued Ops Tab"
 Public Const CAT_INPUT_CONTINUING = "TGK Input Continuing Operations Tab"
 Public Const CAT_JOURNALS_CONTINUING = "TGK Journals Continuing Tab"
-Public Const CAT_CONSOLE_CONTINUING = "TGK Console Continuing Tab"
+Public Const CAT_CONSOLE_CONTINUING = "TGK Consol Continuing Tab"
 Public Const CAT_BS = "TGK BS Tab"
 Public Const CAT_IS = "TGK IS Tab"
-Public Const CAT_PULL_WORKINGS = "Pull Workings"
+Public Const CAT_PULL_WORKINGS = "Paul workings"
+Public Const CAT_TRIAL_BALANCE = "Trial Balance"
 Public Const CAT_UNCATEGORIZED = "Uncategorized"
 
 ' Structure to hold tab categorization
@@ -54,7 +55,21 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
     End If
     
     ' Store categorization in global dictionary
+    ' Note: Requires Microsoft Scripting Runtime library
+    On Error Resume Next
     Set g_TabCategories = CreateObject("Scripting.Dictionary")
+    If Err.Number <> 0 Then
+        On Error GoTo 0
+        MsgBox "Error: Cannot create Scripting.Dictionary object." & vbCrLf & vbCrLf & _
+               "Please ensure Microsoft Scripting Runtime is available:" & vbCrLf & _
+               "1. Open VBA Editor (Alt+F11)" & vbCrLf & _
+               "2. Go to Tools > References" & vbCrLf & _
+               "3. Check 'Microsoft Scripting Runtime'" & vbCrLf & _
+               "4. Click OK and try again", vbCritical, "Missing Library"
+        CategorizeTabs = False
+        Exit Function
+    End If
+    On Error GoTo ErrorHandler
     
     For i = 1 To m_TabCount
         If Not g_TabCategories.Exists(m_TabCategories(i).Category) Then
@@ -62,7 +77,21 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
         End If
         
         Dim tabInfo As Object
+        On Error Resume Next
         Set tabInfo = CreateObject("Scripting.Dictionary")
+        If Err.Number <> 0 Then
+            On Error GoTo 0
+            MsgBox "Error: Cannot create Scripting.Dictionary object." & vbCrLf & vbCrLf & _
+                   "Please ensure Microsoft Scripting Runtime is available:" & vbCrLf & _
+                   "1. Open VBA Editor (Alt+F11)" & vbCrLf & _
+                   "2. Go to Tools > References" & vbCrLf & _
+                   "3. Check 'Microsoft Scripting Runtime'" & vbCrLf & _
+                   "4. Click OK and try again", vbCritical, "Missing Library"
+            CategorizeTabs = False
+            Exit Function
+        End If
+        On Error GoTo ErrorHandler
+        
         tabInfo("TabName") = m_TabCategories(i).TabName
         tabInfo("DivisionName") = m_TabCategories(i).DivisionName
         
@@ -103,7 +132,8 @@ Private Function ShowCategorizationDialog() As Boolean
            "6 = " & CAT_BS & " (single only *)" & vbCrLf & _
            "7 = " & CAT_IS & " (single only *)" & vbCrLf & _
            "8 = " & CAT_PULL_WORKINGS & " (multiple allowed)" & vbCrLf & _
-           "9 = " & CAT_UNCATEGORIZED & " (skip this tab)", _
+           "9 = " & CAT_TRIAL_BALANCE & " (single only *)" & vbCrLf & _
+           "10 = " & CAT_UNCATEGORIZED & " (skip this tab)", _
            vbInformation, "Categorization Instructions"
     
     ' Build category list for reference
@@ -115,7 +145,8 @@ Private Function ShowCategorizationDialog() As Boolean
                    "6 = " & CAT_BS & vbCrLf & _
                    "7 = " & CAT_IS & vbCrLf & _
                    "8 = " & CAT_PULL_WORKINGS & vbCrLf & _
-                   "9 = " & CAT_UNCATEGORIZED
+                   "9 = " & CAT_TRIAL_BALANCE & vbCrLf & _
+                   "10 = " & CAT_UNCATEGORIZED
     
     ' Main categorization loop with retry capability
     validationPassed = False
@@ -129,7 +160,7 @@ Private Function ShowCategorizationDialog() As Boolean
                 categoryChoice = InputBox( _
                     "Tab " & i & " of " & m_TabCount & vbCrLf & vbCrLf & _
                     "Tab Name: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
-                    "Select a category (enter number 1-9):" & vbCrLf & vbCrLf & _
+                    "Select a category (enter number 1-10):" & vbCrLf & vbCrLf & _
                     categoryList, _
                     "Categorize Tab", _
                     "3")
@@ -157,7 +188,7 @@ Private Function ShowCategorizationDialog() As Boolean
                                 divisionName = InputBox( _
                                     "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
                                     "Tab: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
-                                    "Example: UK, US, Europe, Asia", _
+                                    "Examples: UK Division, Properties Division, BIH division, etc.", _
                                     "Enter Division Name", _
                                     "")
                                 
@@ -189,14 +220,17 @@ Private Function ShowCategorizationDialog() As Boolean
                                 m_TabCategories(i).Category = CAT_PULL_WORKINGS
                                 continueLoop = False
                             Case 9
+                                m_TabCategories(i).Category = CAT_TRIAL_BALANCE
+                                continueLoop = False
+                            Case 10
                                 m_TabCategories(i).Category = CAT_UNCATEGORIZED
                                 continueLoop = False
                             Case Else
-                                MsgBox "Invalid number. Please enter a number between 1 and 9.", vbExclamation
+                                MsgBox "Invalid number. Please enter a number between 1 and 10.", vbExclamation
                                 continueLoop = True
                         End Select
                     Else
-                        MsgBox "Invalid input. Please enter a number between 1 and 9.", vbExclamation
+                        MsgBox "Invalid input. Please enter a number between 1 and 10.", vbExclamation
                         continueLoop = True
                     End If
                 End If
@@ -258,7 +292,7 @@ Private Function ValidateSingleTabCategories() As Boolean
     Dim msg As String
     
     singleCategories = Array(CAT_DISCONTINUED, CAT_INPUT_CONTINUING, CAT_JOURNALS_CONTINUING, _
-                            CAT_CONSOLE_CONTINUING, CAT_BS, CAT_IS)
+                            CAT_CONSOLE_CONTINUING, CAT_BS, CAT_IS, CAT_TRIAL_BALANCE)
     
     For Each cat In singleCategories
         count = 0

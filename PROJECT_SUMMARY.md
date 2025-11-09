@@ -164,14 +164,15 @@ Power BI Import & Analysis
 | # | Category | Quantity | Required | Description |
 |---|----------|----------|----------|-------------|
 | 1 | TGK Segment Tabs | Multiple | No | Business segments/divisions |
-| 2 | TGK Discontinued Opt Tab | Single | No | Discontinued operations |
+| 2 | Discontinued Ops Tab | Single | No | Discontinued operations |
 | 3 | **TGK Input Continuing Tab** | **Single** | **✓ Yes** | **Primary input data** |
 | 4 | TGK Journals Continuing Tab | Single | No | Consolidation journals |
-| 5 | TGK Console Continuing Tab | Single | No | Consolidated data |
+| 5 | TGK Consol Continuing Tab | Single | No | Consolidated data |
 | 6 | TGK BS Tab | Single | No | Balance Sheet |
 | 7 | TGK IS Tab | Single | No | Income Statement |
-| 8 | Pull Workings | Multiple | No | Working papers |
-| 9 | Uncategorized | Multiple | No | Ignored tabs |
+| 8 | Paul workings | Multiple | No | Working papers |
+| 9 | Trial Balance | Single | No | Trial balance data |
+| 10 | Uncategorized | Multiple | No | Ignored tabs |
 
 **Note:** Only Input Continuing is mandatory; all others are optional.
 
@@ -196,7 +197,7 @@ Power BI Import & Analysis
    - Purpose: Journal entry analysis
 
 4. **Full Console Table** + **Full Console Percentage**
-   - Source: TGK Console Continuing tab
+   - Source: TGK Consol Continuing tab
    - Purpose: Consolidated data analysis
 
 5. **Discontinued Table** + **Discontinued Percentage**

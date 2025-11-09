@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-11-09
+
+### Fixed
+- **ActiveX Component Error**: Fixed "ActiveX component can't create object" error
+  - Added proper error handling for Scripting.Dictionary creation
+  - Provides clear instructions to enable Microsoft Scripting Runtime if needed
+  - Improved error messages with step-by-step guidance
+
+### Changed
+- **Category Names Updated**:
+  - Category 2: "TGK Discontinued Opt Tab" → "Discontinued Ops Tab"
+  - Category 5: "TGK Console Continuing Tab" → "TGK Consol Continuing Tab"
+  - Category 8: "Pull Workings" → "Paul workings"
+- **Division Name Examples**: Updated to "UK Division, Properties Division, BIH division, etc."
+
+### Added
+- **New Category**: Trial Balance (Category 9)
+  - Single tab only
+  - Optional category for trial balance data
+- Category 10 is now Uncategorized (previously Category 9)
+
+### Updated
+- All documentation files to reflect new category names
+- Category selection prompts now accept numbers 1-10
+- Validation logic updated to include Trial Balance as single-tab category
+
 ## [1.1.1] - 2024-11-09
 
 ### Fixed
@@ -43,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Core Functionality
 - Main orchestration module (`ModMain.bas`) with entry point `StartScopingTool()`
 - Tab discovery and workbook validation
-- Interactive tab categorization system with 9 predefined categories
+- Interactive tab categorization system with 10 predefined categories (updated in v1.2.0)
 - Dynamic column detection and user selection (Original vs Consolidation currency)
 - FSLi hierarchy analysis with total/subtotal detection
 - Entity and pack information extraction from standard TGK rows
@@ -52,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Table Generation
 - Full Input Table generation from Input Continuing tab
 - Journals Table generation from Journals Continuing tab
-- Full Console Table generation from Console Continuing tab
+- Full Console Table generation from Consol Continuing tab (name updated in v1.2.0)
 - Discontinued Table generation from Discontinued Operations tab
 - FSLi Key Table with links to all data tables
 - Pack Number Company Table with division mapping
@@ -61,13 +87,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Tab Categorization
 - TGK Segment Tabs (multiple allowed)
-- TGK Discontinued Opt Tab (single)
+- Discontinued Ops Tab (single) - updated name in v1.2.0
 - TGK Input Continuing Operations Tab (single, required)
 - TGK Journals Continuing Tab (single)
-- TGK Console Continuing Tab (single)
+- TGK Consol Continuing Tab (single) - updated name in v1.2.0
 - TGK BS Tab (single)
 - TGK IS Tab (single)
-- Pull Workings (multiple allowed)
+- Paul workings (multiple allowed) - updated name in v1.2.0
+- Trial Balance (single) - added in v1.2.0
 - Uncategorized (multiple allowed)
 
 #### User Interface

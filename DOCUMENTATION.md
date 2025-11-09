@@ -80,14 +80,15 @@ The tool will present pop-up dialogs to categorize each tab from your consolidat
 **Available Categories:**
 
 1. **TGK Segment Tabs** (multiple allowed): Individual business segments
-2. **TGK Discontinued Opt Tab** (single only): Discontinued operations
+2. **Discontinued Ops Tab** (single only): Discontinued operations
 3. **TGK Input Continuing Operations Tab** (single only): Primary input data (REQUIRED)
 4. **TGK Journals Continuing Tab** (single only): Consolidation journal entries
-5. **TGK Console Continuing Tab** (single only): Consolidated data
+5. **TGK Consol Continuing Tab** (single only): Consolidated data
 6. **TGK BS Tab** (single only): Balance Sheet
 7. **TGK IS Tab** (single only): Income Statement
-8. **Pull Workings** (multiple allowed): Working papers and calculations
-9. **Uncategorized**: Tabs to be ignored
+8. **Paul workings** (multiple allowed): Working papers and calculations
+9. **Trial Balance** (single only): Trial balance data
+10. **Uncategorized**: Tabs to be ignored
 
 **Instructions:**
 
@@ -173,13 +174,14 @@ A new workbook will be created with the following tables:
 **Category Constants:**
 ```vba
 CAT_SEGMENT = "TGK Segment Tabs"
-CAT_DISCONTINUED = "TGK Discontinued Opt Tab"
+CAT_DISCONTINUED = "Discontinued Ops Tab"
 CAT_INPUT_CONTINUING = "TGK Input Continuing Operations Tab"
 CAT_JOURNALS_CONTINUING = "TGK Journals Continuing Tab"
-CAT_CONSOLE_CONTINUING = "TGK Console Continuing Tab"
+CAT_CONSOLE_CONTINUING = "TGK Consol Continuing Tab"
 CAT_BS = "TGK BS Tab"
 CAT_IS = "TGK IS Tab"
-CAT_PULL_WORKINGS = "Pull Workings"
+CAT_PULL_WORKINGS = "Paul workings"
+CAT_TRIAL_BALANCE = "Trial Balance"
 CAT_UNCATEGORIZED = "Uncategorized"
 ```
 
@@ -567,12 +569,13 @@ Untested % = 1 - [Coverage %]
 **Solution:**
 - Review categorization
 - Ensure only one tab is assigned to:
-  - TGK Discontinued Opt Tab
+  - Discontinued Ops Tab
   - TGK Input Continuing Operations Tab
   - TGK Journals Continuing Tab
-  - TGK Console Continuing Tab
+  - TGK Consol Continuing Tab
   - TGK BS Tab
   - TGK IS Tab
+  - Trial Balance
 
 #### Issue 4: Tool runs but no data in tables
 
