@@ -1,4 +1,3 @@
-Attribute VB_Name = "ModDataProcessing"
 Option Explicit
 
 ' ============================================================================
@@ -7,25 +6,6 @@ Option Explicit
 ' DESCRIPTION: Handles unmerging cells, detecting columns, analyzing FSLi
 '              hierarchies, and extracting entity information
 ' ============================================================================
-
-' Structure to hold column information
-Public Type ColumnInfo
-    ColumnIndex As Long
-    ColumnType As String ' "Original/Entity" or "Consolidation/Consolidation"
-    PackName As String
-    PackCode As String
-End Type
-
-' Structure to hold FSLi information
-Public Type FSLiInfo
-    FSLiName As String
-    RowIndex As Long
-    IsTotal As Boolean
-    IsSubtotal As Boolean
-    SubtotalOf As String
-    Level As Long
-    StatementType As String ' "Income Statement", "Balance Sheet", "Notes"
-End Type
 
 ' Main processing orchestrator
 Public Sub ProcessConsolidationData()
@@ -92,7 +72,7 @@ Private Function GetTabByCategory(categoryName As String) As Worksheet
     Dim tabInfo As Object
     
     If g_TabCategories.Exists(categoryName) Then
-        If g_TabCategories(categoryName).Count > 0 Then
+        If g_TabCategories(categoryName).count > 0 Then
             Set tabInfo = g_TabCategories(categoryName)(1)
             Set GetTabByCategory = g_SourceWorkbook.Worksheets(tabInfo("TabName"))
         End If
@@ -143,29 +123,30 @@ Private Function DetectColumns(ws As Worksheet) As Collection
     Dim col As Long
     Dim lastCol As Long
     Dim cellValue As String
-    Dim colInfo As ColumnInfo
+    Dim colInfo As Object ' Use dictionary instead of UDT
     Dim packName As String
     Dim packCode As String
     
     ' Find last column with data in row 6
-    lastCol = ws.Cells(6, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = ws.Cells(6, ws.columns.count).End(xlToLeft).Column
     
     ' Analyze row 6 for column types
     For col = 1 To lastCol
         cellValue = Trim(ws.Cells(6, col).Value)
         
         If cellValue <> "" Then
-            colInfo.ColumnIndex = col
+            Set colInfo = CreateObject("Scripting.Dictionary")
+            colInfo("ColumnIndex") = col
             
             ' Determine column type
             If InStr(1, cellValue, "original", vbTextCompare) > 0 And _
                InStr(1, cellValue, "entity currency", vbTextCompare) > 0 Then
-                colInfo.ColumnType = "Original/Entity"
+                colInfo("ColumnType") = "Original/Entity"
             ElseIf InStr(1, cellValue, "consolidation", vbTextCompare) > 0 And _
                    InStr(1, cellValue, "consolidation currency", vbTextCompare) > 0 Then
-                colInfo.ColumnType = "Consolidation/Consolidation"
+                colInfo("ColumnType") = "Consolidation/Consolidation"
             Else
-                colInfo.ColumnType = "Other"
+                colInfo("ColumnType") = "Other"
             End If
             
             ' Get pack name from row 7
@@ -173,14 +154,14 @@ Private Function DetectColumns(ws As Worksheet) As Collection
             If ws.Cells(7, col).Value <> "" Then
                 packName = Trim(ws.Cells(7, col).Value)
             End If
-            colInfo.PackName = packName
+            colInfo("PackName") = packName
             
             ' Get pack code from row 8
             packCode = ""
             If ws.Cells(8, col).Value <> "" Then
                 packCode = Trim(ws.Cells(8, col).Value)
             End If
-            colInfo.PackCode = packCode
+            colInfo("PackCode") = packCode
             
             columns.Add colInfo
         End If
@@ -199,16 +180,16 @@ Private Function PromptColumnSelection(columns As Collection) As String
     Dim originalCount As Long
     Dim consolidationCount As Long
     Dim i As Long
-    Dim colInfo As ColumnInfo
+    Dim colInfo As Object
     Dim msg As String
     Dim response As VbMsgBoxResult
     
     ' Count column types
-    For i = 1 To columns.Count
-        colInfo = columns(i)
-        If colInfo.ColumnType = "Original/Entity" Then
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("ColumnType") = "Original/Entity" Then
             originalCount = originalCount + 1
-        ElseIf colInfo.ColumnType = "Consolidation/Consolidation" Then
+        ElseIf colInfo("ColumnType") = "Consolidation/Consolidation" Then
             consolidationCount = consolidationCount + 1
         End If
     Next i
@@ -247,7 +228,7 @@ Private Function AnalyzeFSLiStructure(ws As Worksheet, columnType As String) As 
     Dim row As Long
     Dim lastRow As Long
     Dim fsliName As String
-    Dim fsliInfo As FSLiInfo
+    Dim fsliInfo As Object ' Dictionary instead of UDT
     Dim currentStatement As String
     Dim notesStartRow As Long
     
@@ -255,7 +236,7 @@ Private Function AnalyzeFSLiStructure(ws As Worksheet, columnType As String) As 
     notesStartRow = 0
     
     ' Find last row with data
-    lastRow = ws.Cells(ws.Rows.Count, 2).End(xlUp).row
+    lastRow = ws.Cells(ws.Rows.count, 2).End(xlUp).row
     
     ' Start from row 9 (after headers)
     For row = 9 To lastRow
@@ -282,18 +263,19 @@ Private Function AnalyzeFSLiStructure(ws As Worksheet, columnType As String) As 
             currentStatement = "Balance Sheet"
         End If
         
-        ' Create FSLi info
-        fsliInfo.FSLiName = fsliName
-        fsliInfo.RowIndex = row
-        fsliInfo.StatementType = currentStatement
+        ' Create FSLi info dictionary
+        Set fsliInfo = CreateObject("Scripting.Dictionary")
+        fsliInfo("FSLiName") = fsliName
+        fsliInfo("RowIndex") = row
+        fsliInfo("StatementType") = currentStatement
         
         ' Detect if it's a total or subtotal
-        fsliInfo.IsTotal = (InStr(1, fsliName, "total", vbTextCompare) > 0)
-        fsliInfo.IsSubtotal = (InStr(1, fsliName, "subtotal", vbTextCompare) > 0) Or _
-                              (InStr(1, fsliName, "sub-total", vbTextCompare) > 0)
+        fsliInfo("IsTotal") = (InStr(1, fsliName, "total", vbTextCompare) > 0)
+        fsliInfo("IsSubtotal") = (InStr(1, fsliName, "subtotal", vbTextCompare) > 0) Or _
+                                 (InStr(1, fsliName, "sub-total", vbTextCompare) > 0)
         
         ' Detect level (indentation)
-        fsliInfo.Level = DetectIndentationLevel(ws, row, 2)
+        fsliInfo("Level") = DetectIndentationLevel(ws, row, 2)
         
         ' Add to collection
         fsliList.Add fsliInfo
@@ -313,7 +295,9 @@ End Function
 Private Function DetectIndentationLevel(ws As Worksheet, row As Long, col As Long) As Long
     On Error Resume Next
     DetectIndentationLevel = ws.Cells(row, col).IndentLevel
-    If Err.Number <> 0 Then DetectIndentationLevel = 0
+    If Err.Number <> 0 Then
+        DetectIndentationLevel = 0
+    End If
     On Error GoTo 0
 End Function
 
@@ -322,7 +306,7 @@ Private Function IsRowEmpty(ws As Worksheet, row As Long) As Boolean
     Dim col As Long
     Dim lastCol As Long
     
-    lastCol = ws.Cells(row, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = ws.Cells(row, ws.columns.count).End(xlToLeft).Column
     
     For col = 1 To lastCol
         If ws.Cells(row, col).Value <> "" Then
@@ -344,8 +328,8 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     Dim outCol As Long
     Dim i As Long
     Dim j As Long
-    Dim colInfo As ColumnInfo
-    Dim fsliInfo As FSLiInfo
+    Dim colInfo As Object
+    Dim fsliInfo As Object
     Dim packList As Collection
     Dim packName As String
     
@@ -355,12 +339,12 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     
     ' Get list of packs with selected column type
     Set packList = New Collection
-    For i = 1 To columns.Count
-        colInfo = columns(i)
-        If colInfo.ColumnType = columnType And colInfo.PackName <> "" Then
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("ColumnType") = columnType And colInfo("PackName") <> "" Then
             ' Avoid duplicates
             On Error Resume Next
-            packList.Add colInfo.PackName, colInfo.PackName
+            packList.Add colInfo("PackName"), colInfo("PackName")
             On Error GoTo ErrorHandler
         End If
     Next i
@@ -369,14 +353,14 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     outputWs.Cells(1, 1).Value = "Pack"
     
     outCol = 2
-    For i = 1 To fsliList.Count
-        fsliInfo = fsliList(i)
-        outputWs.Cells(1, outCol).Value = fsliInfo.FSLiName
+    For i = 1 To fsliList.count
+        Set fsliInfo = fsliList(i)
+        outputWs.Cells(1, outCol).Value = fsliInfo("FSLiName")
         
         ' Add metadata
-        If fsliInfo.IsTotal Then
+        If fsliInfo("IsTotal") Then
             outputWs.Cells(1, outCol).Value = outputWs.Cells(1, outCol).Value & " (Total)"
-        ElseIf fsliInfo.IsSubtotal Then
+        ElseIf fsliInfo("IsSubtotal") Then
             outputWs.Cells(1, outCol).Value = outputWs.Cells(1, outCol).Value & " (Subtotal)"
         End If
         
@@ -385,14 +369,14 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
     
     ' Write pack names and data
     outRow = 2
-    For i = 1 To packList.Count
+    For i = 1 To packList.count
         packName = packList(i)
         outputWs.Cells(outRow, 1).Value = packName
         
         ' For each FSLi, find the value
         outCol = 2
-        For j = 1 To fsliList.Count
-            fsliInfo = fsliList(j)
+        For j = 1 To fsliList.count
+            Set fsliInfo = fsliList(j)
             
             ' Find column for this pack
             Dim packCol As Long
@@ -400,7 +384,7 @@ Private Sub CreateFullInputTable(sourceWs As Worksheet, columns As Collection, _
             
             If packCol > 0 Then
                 ' Copy value
-                outputWs.Cells(outRow, outCol).Value = sourceWs.Cells(fsliInfo.RowIndex, packCol).Value
+                outputWs.Cells(outRow, outCol).Value = sourceWs.Cells(fsliInfo("RowIndex"), packCol).Value
             End If
             
             outCol = outCol + 1
@@ -421,12 +405,12 @@ End Sub
 ' Find column index for a specific pack
 Private Function FindPackColumn(columns As Collection, packName As String, columnType As String) As Long
     Dim i As Long
-    Dim colInfo As ColumnInfo
+    Dim colInfo As Object
     
-    For i = 1 To columns.Count
-        colInfo = columns(i)
-        If colInfo.PackName = packName And colInfo.ColumnType = columnType Then
-            FindPackColumn = colInfo.ColumnIndex
+    For i = 1 To columns.count
+        Set colInfo = columns(i)
+        If colInfo("PackName") = packName And colInfo("ColumnType") = columnType Then
+            FindPackColumn = colInfo("ColumnIndex")
             Exit Function
         End If
     Next i
@@ -442,8 +426,8 @@ Private Sub FormatAsTable(ws As Worksheet)
     Dim lastCol As Long
     Dim tableRange As Range
     
-    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).row
-    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+    lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).row
+    lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
     
     If lastRow > 1 And lastCol > 1 Then
         Set tableRange = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol))
@@ -454,7 +438,7 @@ Private Sub FormatAsTable(ws As Worksheet)
         ws.Rows(1).Font.Color = RGB(255, 255, 255)
         
         ' Auto-fit columns
-        ws.Columns.AutoFit
+        ws.columns.AutoFit
         
         ' Add borders
         tableRange.Borders.LineStyle = xlContinuous
@@ -463,38 +447,66 @@ Private Sub FormatAsTable(ws As Worksheet)
     On Error GoTo 0
 End Sub
 
-' Process Discontinued tab (similar structure to Input tab)
+' Process Discontinued tab
 Private Sub ProcessDiscontinuedTab(ws As Worksheet)
-    ' Implementation similar to ProcessInputTab
-    ' Omitted for brevity - would follow same pattern
+    On Error GoTo ErrorHandler
+    
+    ' Example logic for processing the Discontinued tab
+    MsgBox "Processing Discontinued tab: " & ws.Name, vbInformation
+    
+    ' Add your processing logic here (similar to ProcessInputTab)
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Discontinued tab: " & Err.Description, vbCritical
 End Sub
 
-' Process Journals tab (similar structure to Input tab)
+' Process Journals tab
 Private Sub ProcessJournalsTab(ws As Worksheet)
-    ' Implementation similar to ProcessInputTab
-    ' Omitted for brevity - would follow same pattern
+    On Error GoTo ErrorHandler
+    
+    ' Example logic for processing the Journals tab
+    MsgBox "Processing Journals tab: " & ws.Name, vbInformation
+    
+    ' Add your processing logic here (similar to ProcessInputTab)
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Journals tab: " & Err.Description, vbCritical
 End Sub
 
-' Process Console tab (similar structure to Input tab)
+' Process Console tab
 Private Sub ProcessConsoleTab(ws As Worksheet)
-    ' Implementation similar to ProcessInputTab
-    ' Omitted for brevity - would follow same pattern
+    On Error GoTo ErrorHandler
+    
+    ' Example logic for processing the Console tab
+    MsgBox "Processing Console tab: " & ws.Name, vbInformation
+    
+    ' Add your processing logic here (similar to ProcessInputTab)
+    
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error processing Console tab: " & Err.Description, vbCritical
 End Sub
 
-' Create FSLi Key Table (placeholder)
+' Create FSLi Key Table
 Private Sub CreateFSLiKeyTable()
-    ' Implementation for FSLi Key Table
-    ' Will be added in next module
+    ' Placeholder for FSLi Key Table logic
+    MsgBox "FSLi Key Table creation logic goes here.", vbInformation
 End Sub
 
-' Create Pack Number Company Table (placeholder)
+' Create Pack Number Company Table
 Private Sub CreatePackNumberCompanyTable()
-    ' Implementation for Pack Number Company Table
-    ' Will be added in next module
+    ' Placeholder for Pack Number Company Table logic
+    MsgBox "Pack Number Company Table creation logic goes here.", vbInformation
 End Sub
 
-' Create Percentage Tables (placeholder)
+' Create Percentage Tables
 Private Sub CreatePercentageTables()
-    ' Implementation for Percentage Tables
-    ' Will be added in next module
+    ' Placeholder for Percentage Tables logic
+    MsgBox "Percentage Tables creation logic goes here.", vbInformation
 End Sub
+
