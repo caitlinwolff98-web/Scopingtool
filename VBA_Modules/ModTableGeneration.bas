@@ -6,6 +6,13 @@ Option Explicit
 ' DESCRIPTION: Creates additional tables required for Power BI integration
 ' ============================================================================
 
+' Import category constants from ModTabCategorization
+Public Const CAT_SEGMENT = "TGK Segment Tabs"
+Public Const CAT_DISCONTINUED = "Discontinued Ops Tab"
+Public Const CAT_INPUT_CONTINUING = "TGK Input Continuing Operations Tab"
+Public Const CAT_JOURNALS_CONTINUING = "TGK Journals Continuing Tab"
+Public Const CAT_CONSOLE_CONTINUING = "TGK Consol Continuing Tab"
+
 ' Get worksheet by category (moved here for accessibility)
 Public Function GetTabByCategory(categoryName As String) As Worksheet
     On Error Resume Next
@@ -30,6 +37,9 @@ Public Sub CreateFSLiKeyTable()
     Dim fsliName As String
     Dim row As Long
     Dim i As Long
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim tbl As ListObject
     
     ' Create output worksheet
     Set outputWs = g_OutputWorkbook.Worksheets.Add
@@ -37,14 +47,9 @@ Public Sub CreateFSLiKeyTable()
     
     ' Set up headers
     outputWs.Cells(1, 1).Value = "FSLi"
-    outputWs.Cells(1, 2).Value = "FSLi Input"
-    outputWs.Cells(1, 3).Value = "FSLi Input Percentage"
-    outputWs.Cells(1, 4).Value = "FSLi Journal"
-    outputWs.Cells(1, 5).Value = "FSLi Journal Percentage"
-    outputWs.Cells(1, 6).Value = "FSLi Console"
-    outputWs.Cells(1, 7).Value = "FSLi Console Percentage"
-    outputWs.Cells(1, 8).Value = "FSLi Discontinued"
-    outputWs.Cells(1, 9).Value = "FSLi Discontinued Percentage"
+    outputWs.Cells(1, 2).Value = "Statement Type"
+    outputWs.Cells(1, 3).Value = "Is Total"
+    outputWs.Cells(1, 4).Value = "Level"
     
     ' Get unique FSLi names from all tables
     Set fsliCollection = CollectAllFSLiNames()
@@ -52,23 +57,34 @@ Public Sub CreateFSLiKeyTable()
     ' Populate FSLi names
     row = 2
     For i = 1 To fsliCollection.count
-        fsliName = fsliCollection(i)
-        outputWs.Cells(row, 1).Value = fsliName
+        Dim fsliDict As Object
+        Set fsliDict = fsliCollection(i)
         
-        ' Link to other tables using VLOOKUP formulas
-        ' FSLi Input
-        outputWs.Cells(row, 2).Formula = "=IFERROR(VLOOKUP(A" & row & ",'Full Input Table'!A:B,2,FALSE),0)"
-        
-        ' FSLi Input Percentage
-        outputWs.Cells(row, 3).Formula = "=IFERROR(VLOOKUP(A" & row & ",'Full Input Percentage'!A:B,2,FALSE),0)"
-        
-        ' Similar formulas for other columns...
+        outputWs.Cells(row, 1).Value = fsliDict("FSLiName")
+        outputWs.Cells(row, 2).Value = fsliDict("StatementType")
+        outputWs.Cells(row, 3).Value = IIf(fsliDict("IsTotal"), "Yes", "No")
+        outputWs.Cells(row, 4).Value = fsliDict("Level")
         
         row = row + 1
     Next i
     
-    ' Format table
-    FormatAsTable outputWs
+    ' Get dimensions
+    lastRow = outputWs.Cells(outputWs.Rows.count, 1).End(xlUp).row
+    lastCol = 4
+    
+    ' Create actual Excel Table
+    If lastRow > 1 Then
+        On Error Resume Next
+        Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, lastCol)), , xlYes)
+        If Not tbl Is Nothing Then
+            tbl.Name = "FSLi_Key_Table"
+            tbl.TableStyle = "TableStyleMedium2"
+        End If
+        On Error GoTo ErrorHandler
+    End If
+    
+    ' Auto-fit columns
+    outputWs.columns.AutoFit
     
     Exit Sub
     
@@ -76,39 +92,61 @@ ErrorHandler:
     MsgBox "Error creating FSLi Key Table: " & Err.Description, vbCritical
 End Sub
 
-' Collect all unique FSLi names from all tables
+' Collect all unique FSLi names from all tables with metadata
 Private Function CollectAllFSLiNames() As Collection
-    Dim fsliNames As Object ' Dictionary
+    Dim fsliDict As Object ' Dictionary to track unique FSLi
     Dim ws As Worksheet
-    Dim lastCol As Long
-    Dim col As Long
+    Dim tab As Worksheet
+    Dim lastRow As Long
+    Dim row As Long
     Dim fsliName As String
     Dim resultCollection As New Collection
+    Dim fsliInfo As Object
     
-    Set fsliNames = CreateObject("Scripting.Dictionary")
+    Set fsliDict = CreateObject("Scripting.Dictionary")
     
-    ' Check each generated table
-    For Each ws In g_OutputWorkbook.Worksheets
-        If ws.Name Like "*Table" And ws.Name <> "FSLi Key Table" And _
-           ws.Name <> "Pack Number Company Table" Then
+    ' Get FSLi info from source tabs
+    Dim inputTab As Worksheet
+    Set inputTab = GetTabByCategory(CAT_INPUT_CONTINUING)
+    
+    If Not inputTab Is Nothing Then
+        ' Analyze FSLi structure from input tab
+        lastRow = inputTab.Cells(inputTab.Rows.count, 2).End(xlUp).row
+        
+        For row = 9 To lastRow
+            fsliName = Trim(inputTab.Cells(row, 2).Value)
             
-            ' Get FSLi names from row 1 (starting from column 2)
-            lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
-            
-            For col = 2 To lastCol
-                fsliName = Trim(ws.Cells(1, col).Value)
-                If fsliName <> "" Then
-                    ' Remove metadata tags like (Total) or (Subtotal)
-                    fsliName = RemoveMetadataTags(fsliName)
+            If fsliName <> "" And UCase(fsliName) <> "NOTES" Then
+                If Not fsliDict.Exists(fsliName) Then
+                    Set fsliInfo = CreateObject("Scripting.Dictionary")
+                    fsliInfo("FSLiName") = fsliName
                     
-                    If Not fsliNames.Exists(fsliName) Then
-                        fsliNames.Add fsliName, True
-                        resultCollection.Add fsliName
+                    ' Detect statement type
+                    If InStr(1, fsliName, "income statement", vbTextCompare) > 0 Then
+                        fsliInfo("StatementType") = "Income Statement"
+                    ElseIf InStr(1, fsliName, "balance sheet", vbTextCompare) > 0 Then
+                        fsliInfo("StatementType") = "Balance Sheet"
+                    Else
+                        fsliInfo("StatementType") = ""
                     End If
+                    
+                    ' Detect if it's a total
+                    fsliInfo("IsTotal") = (InStr(1, fsliName, "total", vbTextCompare) > 0)
+                    
+                    ' Detect level
+                    On Error Resume Next
+                    fsliInfo("Level") = inputTab.Cells(row, 2).IndentLevel
+                    If Err.Number <> 0 Then
+                        fsliInfo("Level") = 0
+                    End If
+                    On Error GoTo 0
+                    
+                    fsliDict.Add fsliName, fsliInfo
+                    resultCollection.Add fsliInfo
                 End If
-            Next col
-        End If
-    Next ws
+            End If
+        Next row
+    End If
     
     Set CollectAllFSLiNames = resultCollection
 End Function
@@ -143,6 +181,8 @@ Public Sub CreatePackNumberCompanyTable()
     Dim divisionName As String
     Dim col As Long
     Dim lastCol As Long
+    Dim lastRow As Long
+    Dim tbl As ListObject
     
     Set packDict = CreateObject("Scripting.Dictionary")
     
@@ -184,6 +224,71 @@ Public Sub CreatePackNumberCompanyTable()
             End If
         Next col
     Next i
+    
+    ' Also process Input, Journals, Console tabs
+    Dim inputTab As Worksheet
+    Dim journalsTab As Worksheet
+    Dim consoleTab As Worksheet
+    
+    Set inputTab = GetTabByCategory(CAT_INPUT_CONTINUING)
+    If Not inputTab Is Nothing Then
+        lastCol = inputTab.Cells(7, inputTab.columns.count).End(xlToLeft).Column
+        For col = 1 To lastCol
+            packName = Trim(inputTab.Cells(7, col).Value)
+            packCode = Trim(inputTab.Cells(8, col).Value)
+            
+            If packName <> "" And packCode <> "" Then
+                packKey = packCode
+                If Not packDict.Exists(packKey) Then
+                    Set packInfo = CreateObject("Scripting.Dictionary")
+                    packInfo("Name") = packName
+                    packInfo("Code") = packCode
+                    packInfo("Division") = "Continuing Operations"
+                    packDict.Add packKey, packInfo
+                End If
+            End If
+        Next col
+    End If
+    
+    Set journalsTab = GetTabByCategory(CAT_JOURNALS_CONTINUING)
+    If Not journalsTab Is Nothing Then
+        lastCol = journalsTab.Cells(7, journalsTab.columns.count).End(xlToLeft).Column
+        For col = 1 To lastCol
+            packName = Trim(journalsTab.Cells(7, col).Value)
+            packCode = Trim(journalsTab.Cells(8, col).Value)
+            
+            If packName <> "" And packCode <> "" Then
+                packKey = packCode
+                If Not packDict.Exists(packKey) Then
+                    Set packInfo = CreateObject("Scripting.Dictionary")
+                    packInfo("Name") = packName
+                    packInfo("Code") = packCode
+                    packInfo("Division") = "Journals"
+                    packDict.Add packKey, packInfo
+                End If
+            End If
+        Next col
+    End If
+    
+    Set consoleTab = GetTabByCategory(CAT_CONSOLE_CONTINUING)
+    If Not consoleTab Is Nothing Then
+        lastCol = consoleTab.Cells(7, consoleTab.columns.count).End(xlToLeft).Column
+        For col = 1 To lastCol
+            packName = Trim(consoleTab.Cells(7, col).Value)
+            packCode = Trim(consoleTab.Cells(8, col).Value)
+            
+            If packName <> "" And packCode <> "" Then
+                packKey = packCode
+                If Not packDict.Exists(packKey) Then
+                    Set packInfo = CreateObject("Scripting.Dictionary")
+                    packInfo("Name") = packName
+                    packInfo("Code") = packCode
+                    packInfo("Division") = "Consolidated"
+                    packDict.Add packKey, packInfo
+                End If
+            End If
+        Next col
+    End If
     
     ' Process discontinued tab if it exists
     Set discontinuedTab = GetTabByCategory(CAT_DISCONTINUED)
@@ -228,8 +333,22 @@ Public Sub CreatePackNumberCompanyTable()
         row = row + 1
     Next key
     
-    ' Format table
-    FormatAsTable outputWs
+    ' Get dimensions
+    lastRow = outputWs.Cells(outputWs.Rows.count, 1).End(xlUp).row
+    
+    ' Create actual Excel Table
+    If lastRow > 1 Then
+        On Error Resume Next
+        Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, 3)), , xlYes)
+        If Not tbl Is Nothing Then
+            tbl.Name = "Pack_Number_Company_Table"
+            tbl.TableStyle = "TableStyleMedium2"
+        End If
+        On Error GoTo ErrorHandler
+    End If
+    
+    ' Auto-fit columns
+    outputWs.columns.AutoFit
     
     Exit Sub
     
@@ -289,8 +408,10 @@ Private Sub CreatePercentageTable(sourceWs As Worksheet)
     Dim row As Long
     Dim col As Long
     Dim cellValue As Variant
-    Dim columnTotal As Double
+    Dim consolPackRow As Long
     Dim percentValue As Double
+    Dim consolValue As Double
+    Dim tbl As ListObject
     
     ' Create percentage table name
     percentTableName = Replace(sourceWs.Name, "Table", "Percentage")
@@ -306,39 +427,85 @@ Private Sub CreatePercentageTable(sourceWs As Worksheet)
     ' Copy headers
     sourceWs.Rows(1).Copy outputWs.Rows(1)
     
-    ' Calculate percentages for each column
-    For col = 2 To lastCol ' Start from column 2 (skip Pack names)
-        ' Calculate column total
-        columnTotal = 0
-        For row = 2 To lastRow
-            cellValue = sourceWs.Cells(row, col).Value
-            If IsNumeric(cellValue) Then
-                columnTotal = columnTotal + Abs(cellValue)
-            End If
-        Next row
-        
-        ' Calculate percentage for each cell
-        For row = 2 To lastRow
-            cellValue = sourceWs.Cells(row, col).Value
+    ' Find "The Bidvest Group Consolidated" row
+    consolPackRow = 0
+    For row = 2 To lastRow
+        If InStr(1, sourceWs.Cells(row, 1).Value, "Bidvest Group Consolidated", vbTextCompare) > 0 Or _
+           InStr(1, sourceWs.Cells(row, 1).Value, "The Bidvest Group Consolidated", vbTextCompare) > 0 Then
+            consolPackRow = row
+            Exit For
+        End If
+    Next row
+    
+    ' If consolidated pack not found, use column totals approach
+    If consolPackRow = 0 Then
+        ' Calculate percentages based on column totals
+        For col = 2 To lastCol
+            ' Calculate column total
+            Dim columnTotal As Double
+            columnTotal = 0
+            For row = 2 To lastRow
+                cellValue = sourceWs.Cells(row, col).Value
+                If IsNumeric(cellValue) Then
+                    columnTotal = columnTotal + Abs(cellValue)
+                End If
+            Next row
             
-            If IsNumeric(cellValue) And columnTotal <> 0 Then
-                percentValue = (Abs(cellValue) / columnTotal) * 100
-                outputWs.Cells(row, col).Value = percentValue
+            ' Calculate percentage for each cell
+            For row = 2 To lastRow
+                cellValue = sourceWs.Cells(row, col).Value
+                
+                If IsNumeric(cellValue) And columnTotal <> 0 Then
+                    percentValue = (Abs(cellValue) / columnTotal) * 100
+                    outputWs.Cells(row, col).Value = percentValue / 100 ' Excel percentage format
+                Else
+                    outputWs.Cells(row, col).Value = 0
+                End If
                 outputWs.Cells(row, col).NumberFormat = "0.00%"
-            Else
-                outputWs.Cells(row, col).Value = 0
-                outputWs.Cells(row, col).NumberFormat = "0.00%"
+            Next row
+        Next col
+    Else
+        ' Calculate percentages based on consolidated pack
+        For col = 2 To lastCol
+            ' Get consolidated pack value for this FSLi
+            consolValue = 0
+            If IsNumeric(sourceWs.Cells(consolPackRow, col).Value) Then
+                consolValue = Abs(sourceWs.Cells(consolPackRow, col).Value)
             End If
-        Next row
-    Next col
+            
+            ' Calculate percentage for each pack
+            For row = 2 To lastRow
+                cellValue = sourceWs.Cells(row, col).Value
+                
+                If IsNumeric(cellValue) And consolValue <> 0 Then
+                    percentValue = (Abs(cellValue) / consolValue) * 100
+                    outputWs.Cells(row, col).Value = percentValue / 100 ' Excel percentage format
+                ElseIf IsNumeric(cellValue) And consolValue = 0 Then
+                    outputWs.Cells(row, col).Value = 0
+                Else
+                    outputWs.Cells(row, col).Value = 0
+                End If
+                outputWs.Cells(row, col).NumberFormat = "0.00%"
+            Next row
+        Next col
+    End If
     
     ' Copy pack names
     For row = 2 To lastRow
         outputWs.Cells(row, 1).Value = sourceWs.Cells(row, 1).Value
     Next row
     
-    ' Format table
-    FormatAsTable outputWs
+    ' Create actual Excel Table
+    On Error Resume Next
+    Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, lastCol)), , xlYes)
+    If Not tbl Is Nothing Then
+        tbl.Name = Replace(percentTableName, " ", "_")
+        tbl.TableStyle = "TableStyleMedium2"
+    End If
+    On Error GoTo ErrorHandler
+    
+    ' Auto-fit columns
+    outputWs.columns.AutoFit
     
     Exit Sub
     
@@ -353,25 +520,26 @@ Private Sub FormatAsTable(ws As Worksheet)
     Dim lastRow As Long
     Dim lastCol As Long
     Dim tableRange As Range
+    Dim tbl As ListObject
     
     lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).row
     lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
     
     If lastRow > 1 And lastCol > 1 Then
-        Set tableRange = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol))
-        
-        ' Format headers
-        ws.Rows(1).Font.Bold = True
-        ws.Rows(1).Interior.Color = RGB(68, 114, 196)
-        ws.Rows(1).Font.Color = RGB(255, 255, 255)
+        ' Create Excel Table object if not already created
+        If ws.ListObjects.count = 0 Then
+            Set tbl = ws.ListObjects.Add(xlSrcRange, ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)), , xlYes)
+            If Not tbl Is Nothing Then
+                tbl.Name = Replace(ws.Name, " ", "_")
+                tbl.TableStyle = "TableStyleMedium2"
+            End If
+        End If
         
         ' Auto-fit columns
         ws.columns.AutoFit
         
-        ' Add borders
-        tableRange.Borders.LineStyle = xlContinuous
-        
         ' Freeze top row
+        ws.Activate
         ws.Rows(2).Select
         ActiveWindow.FreezePanes = True
         ws.Range("A1").Select
