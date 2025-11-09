@@ -180,13 +180,14 @@ Scoping Analysis
 | Category | Quantity | Required | Description |
 |----------|----------|----------|-------------|
 | TGK Segment Tabs | Multiple | No | Business segments/divisions |
-| TGK Discontinued Opt Tab | Single | No | Discontinued operations |
+| Discontinued Ops Tab | Single | No | Discontinued operations |
 | TGK Input Continuing Tab | **Single** | **Yes** | Primary input data |
 | TGK Journals Continuing Tab | Single | No | Journal entries |
-| TGK Console Continuing Tab | Single | No | Consolidated data |
+| TGK Consol Continuing Tab | Single | No | Consolidated data |
 | TGK BS Tab | Single | No | Balance Sheet |
 | TGK IS Tab | Single | No | Income Statement |
-| Pull Workings | Multiple | No | Working papers |
+| Paul workings | Multiple | No | Working papers |
+| Trial Balance | Single | No | Trial balance data |
 | Uncategorized | Multiple | No | Ignored tabs |
 
 ## Output Tables

@@ -95,16 +95,17 @@ Only **TGK Input Continuing Operations Tab** is mandatory. All others are option
 
 ### How many tabs can I assign to each category?
 - **Single tab only:**
-  - TGK Discontinued Opt Tab
+  - Discontinued Ops Tab
   - TGK Input Continuing Operations Tab
   - TGK Journals Continuing Tab
-  - TGK Console Continuing Tab
+  - TGK Consol Continuing Tab
   - TGK BS Tab
   - TGK IS Tab
+  - Trial Balance
 
 - **Multiple tabs allowed:**
   - TGK Segment Tabs
-  - Pull Workings
+  - Paul workings
   - Uncategorized
 
 ### What if I have 10 segment tabs?
