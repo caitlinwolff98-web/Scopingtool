@@ -1,4 +1,3 @@
-Attribute VB_Name = "ModTableGeneration"
 Option Explicit
 
 ' ============================================================================
@@ -6,6 +5,21 @@ Option Explicit
 ' PURPOSE: Generate supporting tables (FSLi Key, Pack Number, Percentages)
 ' DESCRIPTION: Creates additional tables required for Power BI integration
 ' ============================================================================
+
+' Get worksheet by category (moved here for accessibility)
+Public Function GetTabByCategory(categoryName As String) As Worksheet
+    On Error Resume Next
+    Dim tabInfo As Object
+    
+    If g_TabCategories.Exists(categoryName) Then
+        If g_TabCategories(categoryName).count > 0 Then
+            Set tabInfo = g_TabCategories(categoryName)(1)
+            Set GetTabByCategory = g_SourceWorkbook.Worksheets(tabInfo("TabName"))
+        End If
+    End If
+    
+    On Error GoTo 0
+End Function
 
 ' Create FSLi Key Table with all FSLi entries
 Public Sub CreateFSLiKeyTable()
@@ -37,7 +51,7 @@ Public Sub CreateFSLiKeyTable()
     
     ' Populate FSLi names
     row = 2
-    For i = 1 To fsliCollection.Count
+    For i = 1 To fsliCollection.count
         fsliName = fsliCollection(i)
         outputWs.Cells(row, 1).Value = fsliName
         
@@ -79,7 +93,7 @@ Private Function CollectAllFSLiNames() As Collection
            ws.Name <> "Pack Number Company Table" Then
             
             ' Get FSLi names from row 1 (starting from column 2)
-            lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+            lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
             
             For col = 2 To lastCol
                 fsliName = Trim(ws.Cells(1, col).Value)
@@ -136,7 +150,7 @@ Public Sub CreatePackNumberCompanyTable()
     Set segmentTabs = GetTabsForCategory(CAT_SEGMENT)
     
     ' Process each segment tab
-    For i = 1 To segmentTabs.Count
+    For i = 1 To segmentTabs.count
         Set tabInfo = segmentTabs(i)
         Set ws = g_SourceWorkbook.Worksheets(tabInfo("TabName"))
         
@@ -148,7 +162,7 @@ Public Sub CreatePackNumberCompanyTable()
         End If
         
         ' Extract pack names from row 7 and codes from row 8
-        lastCol = ws.Cells(7, ws.Columns.Count).End(xlToLeft).Column
+        lastCol = ws.Cells(7, ws.columns.count).End(xlToLeft).Column
         
         For col = 1 To lastCol
             packName = Trim(ws.Cells(7, col).Value)
@@ -174,7 +188,7 @@ Public Sub CreatePackNumberCompanyTable()
     ' Process discontinued tab if it exists
     Set discontinuedTab = GetTabByCategory(CAT_DISCONTINUED)
     If Not discontinuedTab Is Nothing Then
-        lastCol = discontinuedTab.Cells(7, discontinuedTab.Columns.Count).End(xlToLeft).Column
+        lastCol = discontinuedTab.Cells(7, discontinuedTab.columns.count).End(xlToLeft).Column
         
         For col = 1 To lastCol
             packName = Trim(discontinuedTab.Cells(7, col).Value)
@@ -286,8 +300,8 @@ Private Sub CreatePercentageTable(sourceWs As Worksheet)
     outputWs.Name = percentTableName
     
     ' Get dimensions
-    lastRow = sourceWs.Cells(sourceWs.Rows.Count, 1).End(xlUp).row
-    lastCol = sourceWs.Cells(1, sourceWs.Columns.Count).End(xlToLeft).Column
+    lastRow = sourceWs.Cells(sourceWs.Rows.count, 1).End(xlUp).row
+    lastCol = sourceWs.Cells(1, sourceWs.columns.count).End(xlToLeft).Column
     
     ' Copy headers
     sourceWs.Rows(1).Copy outputWs.Rows(1)
@@ -340,8 +354,8 @@ Private Sub FormatAsTable(ws As Worksheet)
     Dim lastCol As Long
     Dim tableRange As Range
     
-    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).row
-    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+    lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).row
+    lastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
     
     If lastRow > 1 And lastCol > 1 Then
         Set tableRange = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol))
@@ -352,7 +366,7 @@ Private Sub FormatAsTable(ws As Worksheet)
         ws.Rows(1).Font.Color = RGB(255, 255, 255)
         
         ' Auto-fit columns
-        ws.Columns.AutoFit
+        ws.columns.AutoFit
         
         ' Add borders
         tableRange.Borders.LineStyle = xlContinuous
@@ -365,3 +379,4 @@ Private Sub FormatAsTable(ws As Worksheet)
     
     On Error GoTo 0
 End Sub
+
