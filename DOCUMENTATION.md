@@ -75,26 +75,30 @@ The TGK Consolidation Scoping Tool is a comprehensive VBA-based solution for Mic
 
 ### Step 3: Categorize Tabs
 
-The tool will create a temporary worksheet with all tabs from your consolidation workbook.
+The tool will present pop-up dialogs to categorize each tab from your consolidation workbook.
 
 **Available Categories:**
 
-- **TGK Segment Tabs** (multiple allowed): Individual business segments
-- **TGK Discontinued Opt Tab** (single only): Discontinued operations
-- **TGK Input Continuing Operations Tab** (single only): Primary input data (REQUIRED)
-- **TGK Journals Continuing Tab** (single only): Consolidation journal entries
-- **TGK Console Continuing Tab** (single only): Consolidated data
-- **TGK BS Tab** (single only): Balance Sheet
-- **TGK IS Tab** (single only): Income Statement
-- **Pull Workings** (multiple allowed): Working papers and calculations
-- **Uncategorized**: Tabs to be ignored
+1. **TGK Segment Tabs** (multiple allowed): Individual business segments
+2. **TGK Discontinued Opt Tab** (single only): Discontinued operations
+3. **TGK Input Continuing Operations Tab** (single only): Primary input data (REQUIRED)
+4. **TGK Journals Continuing Tab** (single only): Consolidation journal entries
+5. **TGK Console Continuing Tab** (single only): Consolidated data
+6. **TGK BS Tab** (single only): Balance Sheet
+7. **TGK IS Tab** (single only): Income Statement
+8. **Pull Workings** (multiple allowed): Working papers and calculations
+9. **Uncategorized**: Tabs to be ignored
 
 **Instructions:**
 
-1. For each tab, select the appropriate category from the dropdown in column B
-2. For segment tabs, enter the division name in column C (e.g., "UK", "US", "Europe")
-3. When finished, click `OK` on the dialog
-4. Review any uncategorized tabs and confirm to proceed
+1. Read the categorization instructions in the initial pop-up
+2. For each tab, a pop-up dialog will appear showing the tab name
+3. Enter the number (1-9) corresponding to the desired category
+4. For segment tabs (category 1), you'll be prompted to enter a division name (e.g., "UK", "US", "Europe")
+5. If you enter an invalid number, you'll be prompted to try again
+6. After all tabs are categorized, the tool validates your selections
+7. If validation fails, you can choose to start over or cancel
+8. Review any uncategorized tabs and confirm to proceed
 
 ### Step 4: Select Column Type
 

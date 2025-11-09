@@ -50,26 +50,43 @@ Click: OK
 ```
 
 #### 4. Categorize Tabs
-Tool creates categorization sheet with all tabs listed.
+Tool displays pop-up dialogs to categorize each tab.
 
-**Categorization:**
+**Categorization Process:**
 
-| Tab Name | Category | Division Name |
-|----------|----------|---------------|
-| TGK_UK | TGK Segment Tabs | UK |
-| TGK_Input_Continuing | TGK Input Continuing Operations Tab | |
-| TGK_Journals | TGK Journals Continuing Tab | |
-| TGK_Console | TGK Console Continuing Tab | |
-| Balance_Sheet | TGK BS Tab | |
-| Income_Statement | TGK IS Tab | |
-| Summary | Uncategorized | |
+For each of the 7 tabs, a dialog will appear:
 
-**Steps:**
-1. Use dropdown in Column B to select categories
-2. For TGK_UK, enter "UK" in Column C (Division Name)
-3. Leave other Division Names blank
-4. Summary stays as "Uncategorized"
-5. Click **OK** when done
+1. **Tab 1: TGK_UK**
+   - Pop-up shows: "Tab 1 of 7 - Tab Name: TGK_UK"
+   - Enter: `1` (for TGK Segment Tabs)
+   - Next pop-up: "Enter the division name for this segment tab"
+   - Enter: `UK`
+
+2. **Tab 2: TGK_Input_Continuing**
+   - Pop-up shows: "Tab 2 of 7 - Tab Name: TGK_Input_Continuing"
+   - Enter: `3` (for TGK Input Continuing Operations Tab)
+
+3. **Tab 3: TGK_Journals**
+   - Pop-up shows: "Tab 3 of 7 - Tab Name: TGK_Journals"
+   - Enter: `4` (for TGK Journals Continuing Tab)
+
+4. **Tab 4: TGK_Console**
+   - Pop-up shows: "Tab 4 of 7 - Tab Name: TGK_Console"
+   - Enter: `5` (for TGK Console Continuing Tab)
+
+5. **Tab 5: Balance_Sheet**
+   - Pop-up shows: "Tab 5 of 7 - Tab Name: Balance_Sheet"
+   - Enter: `6` (for TGK BS Tab)
+
+6. **Tab 6: Income_Statement**
+   - Pop-up shows: "Tab 6 of 7 - Tab Name: Income_Statement"
+   - Enter: `7` (for TGK IS Tab)
+
+7. **Tab 7: Summary**
+   - Pop-up shows: "Tab 7 of 7 - Tab Name: Summary"
+   - Enter: `9` (for Uncategorized)
+
+**Result:** All tabs categorized via pop-up dialogs, validation passes
 
 #### 5. Select Column Type
 ```

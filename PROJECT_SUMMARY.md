@@ -44,7 +44,7 @@ The TGK Consolidation Scoping Tool is a **production-ready, enterprise-grade VBA
 
 ### 1. Intelligent Tab Categorization
 - **9 Predefined Categories** for different tab types
-- **Interactive Interface** with dropdown validation
+- **Interactive Pop-up Interface** with input validation
 - **Smart Validation** enforces single/multiple tab rules
 - **Division Mapping** for segment tabs
 - **Uncategorized Handling** with user confirmation

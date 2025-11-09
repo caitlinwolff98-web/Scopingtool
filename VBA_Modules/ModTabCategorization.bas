@@ -77,100 +77,149 @@ ErrorHandler:
     CategorizeTabs = False
 End Function
 
-' Show dialog for categorizing tabs
+' Show dialog for categorizing tabs using pop-up dialogs
 Private Function ShowCategorizationDialog() As Boolean
     On Error GoTo ErrorHandler
     
-    Dim ws As Worksheet
-    Dim lastRow As Long
     Dim i As Long
     Dim response As VbMsgBoxResult
     Dim categoryChoice As String
-    Dim validCategories As String
+    Dim divisionName As String
+    Dim categoryList As String
+    Dim categoryNumber As Integer
+    Dim continueLoop As Boolean
+    Dim validationPassed As Boolean
+    Dim startOver As Boolean
     
-    ' Create temporary worksheet for categorization
-    Set ws = g_SourceWorkbook.Worksheets.Add
-    ws.Name = "TempCategorization_" & Format(Now, "hhmmss")
+    ' Show instructions
+    MsgBox "Tab Categorization - Pop-up Mode" & vbCrLf & vbCrLf & _
+           "You will now categorize each tab using pop-up dialogs." & vbCrLf & vbCrLf & _
+           "For each tab, you'll select a category by entering a number:" & vbCrLf & vbCrLf & _
+           "1 = " & CAT_SEGMENT & " (multiple allowed)" & vbCrLf & _
+           "2 = " & CAT_DISCONTINUED & " (single only *)" & vbCrLf & _
+           "3 = " & CAT_INPUT_CONTINUING & " (single only * - REQUIRED)" & vbCrLf & _
+           "4 = " & CAT_JOURNALS_CONTINUING & " (single only *)" & vbCrLf & _
+           "5 = " & CAT_CONSOLE_CONTINUING & " (single only *)" & vbCrLf & _
+           "6 = " & CAT_BS & " (single only *)" & vbCrLf & _
+           "7 = " & CAT_IS & " (single only *)" & vbCrLf & _
+           "8 = " & CAT_PULL_WORKINGS & " (multiple allowed)" & vbCrLf & _
+           "9 = " & CAT_UNCATEGORIZED & " (skip this tab)", _
+           vbInformation, "Categorization Instructions"
     
-    ' Set up headers
-    ws.Range("A1").Value = "Tab Name"
-    ws.Range("B1").Value = "Category"
-    ws.Range("C1").Value = "Division Name (for segments)"
-    ws.Range("A1:C1").Font.Bold = True
-    ws.Range("A1:C1").Interior.Color = RGB(200, 200, 200)
+    ' Build category list for reference
+    categoryList = "1 = " & CAT_SEGMENT & vbCrLf & _
+                   "2 = " & CAT_DISCONTINUED & vbCrLf & _
+                   "3 = " & CAT_INPUT_CONTINUING & vbCrLf & _
+                   "4 = " & CAT_JOURNALS_CONTINUING & vbCrLf & _
+                   "5 = " & CAT_CONSOLE_CONTINUING & vbCrLf & _
+                   "6 = " & CAT_BS & vbCrLf & _
+                   "7 = " & CAT_IS & vbCrLf & _
+                   "8 = " & CAT_PULL_WORKINGS & vbCrLf & _
+                   "9 = " & CAT_UNCATEGORIZED
     
-    ' List all tabs
-    For i = 1 To m_TabCount
-        ws.Cells(i + 1, 1).Value = m_TabCategories(i).TabName
-        ws.Cells(i + 1, 2).Value = CAT_UNCATEGORIZED
-    Next i
-    
-    ' Add validation list for categories
-    validCategories = CAT_SEGMENT & "," & CAT_DISCONTINUED & "," & CAT_INPUT_CONTINUING & "," & _
-                      CAT_JOURNALS_CONTINUING & "," & CAT_CONSOLE_CONTINUING & "," & _
-                      CAT_BS & "," & CAT_IS & "," & CAT_PULL_WORKINGS & "," & CAT_UNCATEGORIZED
-    
-    With ws.Range("B2:B" & (m_TabCount + 1)).Validation
-        .Delete
-        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, _
-             Formula1:=validCategories
-    End With
-    
-    ' Auto-fit columns
-    ws.Columns("A:C").AutoFit
-    
-    ' Instructions
-    MsgBox "Please categorize the tabs in the newly created worksheet." & vbCrLf & vbCrLf & _
-           "Instructions:" & vbCrLf & _
-           "1. Select a category from the dropdown in column B for each tab" & vbCrLf & _
-           "2. For segment tabs, enter the division name in column C" & vbCrLf & _
-           "3. Categories marked with (*) can only have ONE tab" & vbCrLf & _
-           "4. When finished, click OK on the next dialog" & vbCrLf & vbCrLf & _
-           "Category Descriptions:" & vbCrLf & _
-           "- " & CAT_SEGMENT & ": All segment tabs (multiple allowed)" & vbCrLf & _
-           "- " & CAT_DISCONTINUED & ": Discontinued operations (*)" & vbCrLf & _
-           "- " & CAT_INPUT_CONTINUING & ": Input continuing operations (*)" & vbCrLf & _
-           "- " & CAT_JOURNALS_CONTINUING & ": Journal entries (*)" & vbCrLf & _
-           "- " & CAT_CONSOLE_CONTINUING & ": Consolidated continuing (*)" & vbCrLf & _
-           "- " & CAT_BS & ": Balance sheet (*)" & vbCrLf & _
-           "- " & CAT_IS & ": Income statement (*)" & vbCrLf & _
-           "- " & CAT_PULL_WORKINGS & ": Working papers (multiple allowed)", _
-           vbInformation, "Categorize Tabs"
-    
-    ' Wait for user to finish
-    ws.Activate
-    response = MsgBox("Have you finished categorizing all tabs?", vbYesNo + vbQuestion, "Confirm Categorization")
-    
-    If response = vbNo Then
-        Application.DisplayAlerts = False
-        ws.Delete
-        Application.DisplayAlerts = True
-        ShowCategorizationDialog = False
-        Exit Function
-    End If
-    
-    ' Read categorization
-    For i = 1 To m_TabCount
-        m_TabCategories(i).Category = ws.Cells(i + 1, 2).Value
-        m_TabCategories(i).DivisionName = ws.Cells(i + 1, 3).Value
-    Next i
-    
-    ' Validate single-tab categories
-    If Not ValidateSingleTabCategories() Then
-        ShowCategorizationDialog = False
-        Application.DisplayAlerts = False
-        ws.Delete
-        Application.DisplayAlerts = True
-        Exit Function
-    End If
+    ' Main categorization loop with retry capability
+    validationPassed = False
+    Do While Not validationPassed
+        ' Loop through each tab and get category
+        For i = 1 To m_TabCount
+            continueLoop = True
+            
+            Do While continueLoop
+                ' Prompt for category
+                categoryChoice = InputBox( _
+                    "Tab " & i & " of " & m_TabCount & vbCrLf & vbCrLf & _
+                    "Tab Name: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                    "Select a category (enter number 1-9):" & vbCrLf & vbCrLf & _
+                    categoryList, _
+                    "Categorize Tab", _
+                    "3")
+                
+                ' Check if user cancelled
+                If categoryChoice = "" Then
+                    response = MsgBox("Do you want to cancel the categorization process?", _
+                                     vbYesNo + vbQuestion, "Cancel Categorization")
+                    If response = vbYes Then
+                        ShowCategorizationDialog = False
+                        Exit Function
+                    Else
+                        ' Continue with current tab
+                        continueLoop = True
+                    End If
+                Else
+                    ' Validate input
+                    If IsNumeric(categoryChoice) Then
+                        categoryNumber = CInt(categoryChoice)
+                        
+                        Select Case categoryNumber
+                            Case 1
+                                m_TabCategories(i).Category = CAT_SEGMENT
+                                ' Prompt for division name
+                                divisionName = InputBox( _
+                                    "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
+                                    "Tab: " & m_TabCategories(i).TabName & vbCrLf & vbCrLf & _
+                                    "Example: UK, US, Europe, Asia", _
+                                    "Enter Division Name", _
+                                    "")
+                                m_TabCategories(i).DivisionName = Trim(divisionName)
+                                continueLoop = False
+                            Case 2
+                                m_TabCategories(i).Category = CAT_DISCONTINUED
+                                continueLoop = False
+                            Case 3
+                                m_TabCategories(i).Category = CAT_INPUT_CONTINUING
+                                continueLoop = False
+                            Case 4
+                                m_TabCategories(i).Category = CAT_JOURNALS_CONTINUING
+                                continueLoop = False
+                            Case 5
+                                m_TabCategories(i).Category = CAT_CONSOLE_CONTINUING
+                                continueLoop = False
+                            Case 6
+                                m_TabCategories(i).Category = CAT_BS
+                                continueLoop = False
+                            Case 7
+                                m_TabCategories(i).Category = CAT_IS
+                                continueLoop = False
+                            Case 8
+                                m_TabCategories(i).Category = CAT_PULL_WORKINGS
+                                continueLoop = False
+                            Case 9
+                                m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                                continueLoop = False
+                            Case Else
+                                MsgBox "Invalid number. Please enter a number between 1 and 9.", vbExclamation
+                                continueLoop = True
+                        End Select
+                    Else
+                        MsgBox "Invalid input. Please enter a number between 1 and 9.", vbExclamation
+                        continueLoop = True
+                    End If
+                End If
+            Loop
+        Next i
+        
+        ' Validate single-tab categories
+        If ValidateSingleTabCategories() Then
+            validationPassed = True
+        Else
+            response = MsgBox("Validation failed. Would you like to start over?", _
+                             vbYesNo + vbQuestion, "Validation Error")
+            If response = vbYes Then
+                ' Reset and try again
+                For i = 1 To m_TabCount
+                    m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                    m_TabCategories(i).DivisionName = ""
+                Next i
+                ' Loop will continue
+            Else
+                ShowCategorizationDialog = False
+                Exit Function
+            End If
+        End If
+    Loop
     
     ' Show uncategorized tabs
     ShowUncategorizedTabs
-    
-    ' Clean up
-    Application.DisplayAlerts = False
-    ws.Delete
-    Application.DisplayAlerts = True
     
     ShowCategorizationDialog = True
     Exit Function
