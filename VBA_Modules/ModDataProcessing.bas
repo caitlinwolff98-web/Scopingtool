@@ -17,7 +17,7 @@ Public Sub ProcessConsolidationData()
     Dim consoleTab As Worksheet
     
     ' Get required tabs
-    Set inputTab = GetTabByCategory(CAT_INPUT_CONTINUING)
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
     
     If inputTab Is Nothing Then
         MsgBox "Could not find Input Continuing tab. Process cannot continue.", vbCritical
@@ -29,19 +29,19 @@ Public Sub ProcessConsolidationData()
     ProcessInputTab inputTab
     
     ' Process other tabs if they exist
-    Set discontinuedTab = GetTabByCategory(CAT_DISCONTINUED)
+    Set discontinuedTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_DISCONTINUED)
     If Not discontinuedTab Is Nothing Then
         Application.StatusBar = "Processing Discontinued tab..."
         ProcessDiscontinuedTab discontinuedTab
     End If
     
-    Set journalsTab = GetTabByCategory(CAT_JOURNALS_CONTINUING)
+    Set journalsTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_JOURNALS_CONTINUING)
     If Not journalsTab Is Nothing Then
         Application.StatusBar = "Processing Journals tab..."
         ProcessJournalsTab journalsTab
     End If
     
-    Set consoleTab = GetTabByCategory(CAT_CONSOLE_CONTINUING)
+    Set consoleTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_CONSOLE_CONTINUING)
     If Not consoleTab Is Nothing Then
         Application.StatusBar = "Processing Console tab..."
         ProcessConsoleTab consoleTab
@@ -66,20 +66,7 @@ ErrorHandler:
     MsgBox "Error in data processing: " & Err.Description, vbCritical
 End Sub
 
-' Get worksheet by category
-Private Function GetTabByCategory(categoryName As String) As Worksheet
-    On Error Resume Next
-    Dim tabInfo As Object
-    
-    If g_TabCategories.Exists(categoryName) Then
-        If g_TabCategories(categoryName).count > 0 Then
-            Set tabInfo = g_TabCategories(categoryName)(1)
-            Set GetTabByCategory = g_SourceWorkbook.Worksheets(tabInfo("TabName"))
-        End If
-    End If
-    
-    On Error GoTo 0
-End Function
+
 
 ' Process Input Continuing tab
 Private Sub ProcessInputTab(ws As Worksheet)

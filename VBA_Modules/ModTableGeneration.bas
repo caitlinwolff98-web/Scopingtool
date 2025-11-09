@@ -6,13 +6,6 @@ Option Explicit
 ' DESCRIPTION: Creates additional tables required for Power BI integration
 ' ============================================================================
 
-' Import category constants from ModTabCategorization
-Public Const CAT_SEGMENT = "TGK Segment Tabs"
-Public Const CAT_DISCONTINUED = "Discontinued Ops Tab"
-Public Const CAT_INPUT_CONTINUING = "TGK Input Continuing Operations Tab"
-Public Const CAT_JOURNALS_CONTINUING = "TGK Journals Continuing Tab"
-Public Const CAT_CONSOLE_CONTINUING = "TGK Consol Continuing Tab"
-
 ' Get worksheet by category (moved here for accessibility)
 Public Function GetTabByCategory(categoryName As String) As Worksheet
     On Error Resume Next
@@ -113,7 +106,7 @@ Private Function CollectAllFSLiNames() As Collection
     
     ' Get FSLi info from source tabs
     Dim inputTab As Worksheet
-    Set inputTab = GetTabByCategory(CAT_INPUT_CONTINUING)
+    Set inputTab = GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
     
     If Not inputTab Is Nothing Then
         ' Analyze FSLi structure from input tab
@@ -193,7 +186,7 @@ Public Sub CreatePackNumberCompanyTable()
     Set packDict = CreateObject("Scripting.Dictionary")
     
     ' Get segment tabs
-    Set segmentTabs = GetTabsForCategory(CAT_SEGMENT)
+    Set segmentTabs = GetTabsForCategory(ModConfig.CAT_SEGMENT)
     
     ' Process each segment tab
     For i = 1 To segmentTabs.count
@@ -236,7 +229,7 @@ Public Sub CreatePackNumberCompanyTable()
     Dim journalsTab As Worksheet
     Dim consoleTab As Worksheet
     
-    Set inputTab = GetTabByCategory(CAT_INPUT_CONTINUING)
+    Set inputTab = GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
     If Not inputTab Is Nothing Then
         lastCol = inputTab.Cells(7, inputTab.columns.count).End(xlToLeft).Column
         For col = 1 To lastCol
@@ -256,7 +249,7 @@ Public Sub CreatePackNumberCompanyTable()
         Next col
     End If
     
-    Set journalsTab = GetTabByCategory(CAT_JOURNALS_CONTINUING)
+    Set journalsTab = GetTabByCategory(ModConfig.CAT_JOURNALS_CONTINUING)
     If Not journalsTab Is Nothing Then
         lastCol = journalsTab.Cells(7, journalsTab.columns.count).End(xlToLeft).Column
         For col = 1 To lastCol
@@ -276,7 +269,7 @@ Public Sub CreatePackNumberCompanyTable()
         Next col
     End If
     
-    Set consoleTab = GetTabByCategory(CAT_CONSOLE_CONTINUING)
+    Set consoleTab = GetTabByCategory(ModConfig.CAT_CONSOLE_CONTINUING)
     If Not consoleTab Is Nothing Then
         lastCol = consoleTab.Cells(7, consoleTab.columns.count).End(xlToLeft).Column
         For col = 1 To lastCol
@@ -297,7 +290,7 @@ Public Sub CreatePackNumberCompanyTable()
     End If
     
     ' Process discontinued tab if it exists
-    Set discontinuedTab = GetTabByCategory(CAT_DISCONTINUED)
+    Set discontinuedTab = GetTabByCategory(ModConfig.CAT_DISCONTINUED)
     If Not discontinuedTab Is Nothing Then
         lastCol = discontinuedTab.Cells(7, discontinuedTab.columns.count).End(xlToLeft).Column
         

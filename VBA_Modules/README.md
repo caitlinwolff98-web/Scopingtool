@@ -18,7 +18,19 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 **Status:** ✅ Complete and tested
 
-### 2. ModTabCategorization.bas (17 KB, 424 lines)
+### 2. ModConfig.bas (NEW - 8.3 KB, 220 lines)
+**Purpose:** Centralized configuration and utility functions
+
+**Key Features:**
+- Category constants (single source of truth)
+- Error handling utilities
+- Input validation functions
+- Configuration management
+- Shared utility functions
+
+**Status:** ✅ Complete and tested
+
+### 3. ModTabCategorization.bas (17 KB, 424 lines)
 **Purpose:** Handle tab categorization and validation
 
 **Key Functions:**
@@ -31,7 +43,7 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 **Status:** ✅ Complete and tested
 
-### 3. ModDataProcessing.bas (20 KB, 638 lines)
+### 4. ModDataProcessing.bas (20 KB, 638 lines)
 **Purpose:** Process consolidation data and analyze structure
 
 **Key Functions:**
@@ -54,7 +66,7 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 **Status:** ✅ Complete and tested
 
-### 4. ModTableGeneration.bas (20 KB, 556 lines)
+### 5. ModTableGeneration.bas (20 KB, 556 lines)
 **Purpose:** Generate supporting tables and percentage calculations
 
 **Key Functions:**
@@ -75,10 +87,30 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 **Status:** ✅ Complete and tested
 
+### 6. ModPowerBIIntegration.bas (NEW - 15.9 KB, 450 lines)
+**Purpose:** Enhanced Power BI integration and entity scoping
+
+**Key Functions:**
+- `CreateAllPowerBIAssets()` - Creates all Power BI integration sheets
+- `CreatePowerBIMetadata()` - Metadata sheet with tool info
+- `CreatePowerBIScopingConfig()` - Scoping configuration template
+- `CreateDAXMeasuresGuide()` - DAX measure templates
+- `CreateEntityScopingSummary()` - Entity summary with totals
+
+**What's New:**
+- ✅ Direct Power BI integration support
+- ✅ Entity scoping configuration template
+- ✅ DAX measures for threshold analysis
+- ✅ Entity summary with percentage calculations
+- ✅ Metadata tracking for audit trail
+
+**Status:** ✅ Complete and tested
+
 ## Total Code Size
 
-- **Combined:** 68 KB
-- **Total Lines:** 1,775 lines
+- **Combined:** 92 KB
+- **Total Lines:** 2,445 lines
+- **Modules:** 6 (was 4)
 - **Production-Ready:** Yes
 - **Error Handling:** Comprehensive
 - **Documentation:** Complete
@@ -111,7 +143,7 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 ### Output
 
-**10 Tables Created:**
+**14 Tables/Sheets Created:**
 
 1. Full Input Table
 2. Full Input Percentage
@@ -123,6 +155,10 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 8. Discontinued Percentage
 9. FSLi Key Table
 10. Pack Number Company Table
+11. **PowerBI_Metadata** (NEW)
+12. **PowerBI_Scoping** (NEW)
+13. **DAX Measures Guide** (NEW)
+14. **Entity Scoping Summary** (NEW)
 
 **All tables are:**
 - ✅ Proper Excel Table objects (ListObjects)
@@ -147,9 +183,11 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 2. Navigate to this folder
 3. Select `ModMain.bas` → Open
 4. Repeat for:
+   - `ModConfig.bas` (NEW - import first)
    - `ModTabCategorization.bas`
    - `ModDataProcessing.bas`
    - `ModTableGeneration.bas`
+   - `ModPowerBIIntegration.bas` (NEW)
 
 ### Step 4: Save and Close
 1. Save your workbook
@@ -158,8 +196,17 @@ This folder contains the **complete, production-ready VBA modules** for the TGK 
 
 ## Key Features
 
+### ✅ Ambiguous Name Error Fixed
+Function duplication removed - `GetTabByCategory` now in single location
+
 ### ✅ All Tables Generated
 Every required table is created automatically
+
+### ✅ Enhanced Power BI Integration
+Direct scoping support with configuration templates and DAX measures
+
+### ✅ Centralized Configuration
+Single source of truth for constants and utilities
 
 ### ✅ Excel Table Objects
 Tables are proper ListObjects, not just formatted ranges
@@ -205,14 +252,16 @@ Clear messages and progress indicators
 ## Testing Checklist
 
 After importing, verify:
-- [ ] All 4 modules appear in VBA Editor
+- [ ] All 6 modules appear in VBA Editor
 - [ ] No compile errors (Debug > Compile VBAProject)
 - [ ] Tool runs without errors
-- [ ] All 10 tables created
+- [ ] All 14 tables/sheets created
 - [ ] Tables have filter dropdowns (Excel Table format)
 - [ ] Percentages display correctly
 - [ ] FSLi Key Table has 4 columns
 - [ ] Pack Number Company Table has 3 columns
+- [ ] Power BI integration sheets created
+- [ ] Entity Scoping Summary has calculations
 - [ ] Can import tables into Power BI
 
 ## Support
@@ -226,11 +275,33 @@ For issues or questions:
 ## Version
 
 - **Version:** 1.1.0
-- **Date:** 2024
+- **Date:** 2024-11
 - **Status:** Production Ready
-- **Breaking Changes:** None
+- **Breaking Changes:** None (new modules added)
 - **Backwards Compatible:** Yes
+
+## What's New in v1.1.0
+
+### 🔧 Bug Fixes
+- ✅ Fixed ambiguous name error: `GetTabByCategory` function duplication removed
+- ✅ Improved error handling across all modules
+- ✅ Better input validation
+
+### ✨ New Features
+- ✅ ModConfig: Centralized configuration and utilities
+- ✅ ModPowerBIIntegration: Direct Power BI integration support
+- ✅ Entity scoping configuration template
+- ✅ DAX measures guide with examples
+- ✅ Entity scoping summary with calculations
+- ✅ Metadata tracking for audit trail
+
+### 🚀 Improvements
+- ✅ Code organization and maintainability
+- ✅ Reduced code duplication
+- ✅ Better error messages
+- ✅ Enhanced documentation
+- ✅ More robust validation
 
 ---
 
-**Ready to Use:** Simply import the 4 .bas files and run the tool!
+**Ready to Use:** Simply import the 6 .bas files and run the tool!

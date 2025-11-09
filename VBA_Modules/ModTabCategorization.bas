@@ -7,18 +7,6 @@ Option Explicit
 '              categories for proper processing
 ' ============================================================================
 
-' Category constants
-Public Const CAT_SEGMENT = "TGK Segment Tabs"
-Public Const CAT_DISCONTINUED = "Discontinued Ops Tab"
-Public Const CAT_INPUT_CONTINUING = "TGK Input Continuing Operations Tab"
-Public Const CAT_JOURNALS_CONTINUING = "TGK Journals Continuing Tab"
-Public Const CAT_CONSOLE_CONTINUING = "TGK Consol Continuing Tab"
-Public Const CAT_BS = "TGK BS Tab"
-Public Const CAT_IS = "TGK IS Tab"
-Public Const CAT_PULL_WORKINGS = "Paul workings"
-Public Const CAT_TRIAL_BALANCE = "Trial Balance"
-Public Const CAT_UNCATEGORIZED = "Uncategorized"
-
 ' Structure to hold tab categorization
 Private Type TabCategory
     tabName As String
@@ -43,7 +31,7 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
     ' Populate tab names
     For i = 1 To tabList.count
         m_TabCategories(i).tabName = tabList(i)
-        m_TabCategories(i).Category = CAT_UNCATEGORIZED
+        m_TabCategories(i).Category = ModConfig.CAT_UNCATEGORIZED
         m_TabCategories(i).divisionName = ""
     Next i
     
@@ -54,21 +42,11 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
     End If
     
     ' Store categorization in global dictionary
-    ' Note: Requires Microsoft Scripting Runtime library
-    On Error Resume Next
-    Set g_TabCategories = CreateObject("Scripting.Dictionary")
-    If Err.Number <> 0 Then
-        On Error GoTo 0
-        MsgBox "Error: Cannot create Scripting.Dictionary object." & vbCrLf & vbCrLf & _
-               "Please ensure Microsoft Scripting Runtime is available:" & vbCrLf & _
-               "1. Open VBA Editor (Alt+F11)" & vbCrLf & _
-               "2. Go to Tools > References" & vbCrLf & _
-               "3. Check 'Microsoft Scripting Runtime'" & vbCrLf & _
-               "4. Click OK and try again", vbCritical, "Missing Library"
+    Set g_TabCategories = ModConfig.CreateDictionary()
+    If g_TabCategories Is Nothing Then
         CategorizeTabs = False
         Exit Function
     End If
-    On Error GoTo ErrorHandler
     
     For i = 1 To m_TabCount
         If Not g_TabCategories.Exists(m_TabCategories(i).Category) Then
@@ -76,20 +54,11 @@ Public Function CategorizeTabs(tabList As Collection) As Boolean
         End If
         
         Dim tabInfo As Object
-        On Error Resume Next
-        Set tabInfo = CreateObject("Scripting.Dictionary")
-        If Err.Number <> 0 Then
-            On Error GoTo 0
-            MsgBox "Error: Cannot create Scripting.Dictionary object." & vbCrLf & vbCrLf & _
-                   "Please ensure Microsoft Scripting Runtime is available:" & vbCrLf & _
-                   "1. Open VBA Editor (Alt+F11)" & vbCrLf & _
-                   "2. Go to Tools > References" & vbCrLf & _
-                   "3. Check 'Microsoft Scripting Runtime'" & vbCrLf & _
-                   "4. Click OK and try again", vbCritical, "Missing Library"
+        Set tabInfo = ModConfig.CreateDictionary()
+        If tabInfo Is Nothing Then
             CategorizeTabs = False
             Exit Function
         End If
-        On Error GoTo ErrorHandler
         
         tabInfo("TabName") = m_TabCategories(i).tabName
         tabInfo("DivisionName") = m_TabCategories(i).divisionName
@@ -123,29 +92,29 @@ Private Function ShowCategorizationDialog() As Boolean
     MsgBox "Tab Categorization - Pop-up Mode" & vbCrLf & vbCrLf & _
            "You will now categorize each tab using pop-up dialogs." & vbCrLf & vbCrLf & _
            "For each tab, you'll select a category by entering a number:" & vbCrLf & vbCrLf & _
-           "1 = " & CAT_SEGMENT & " (multiple allowed)" & vbCrLf & _
-           "2 = " & CAT_DISCONTINUED & " (single only *)" & vbCrLf & _
-           "3 = " & CAT_INPUT_CONTINUING & " (single only * - REQUIRED)" & vbCrLf & _
-           "4 = " & CAT_JOURNALS_CONTINUING & " (single only *)" & vbCrLf & _
-           "5 = " & CAT_CONSOLE_CONTINUING & " (single only *)" & vbCrLf & _
-           "6 = " & CAT_BS & " (single only *)" & vbCrLf & _
-           "7 = " & CAT_IS & " (single only *)" & vbCrLf & _
-           "8 = " & CAT_PULL_WORKINGS & " (multiple allowed)" & vbCrLf & _
-           "9 = " & CAT_TRIAL_BALANCE & " (single only *)" & vbCrLf & _
-           "10 = " & CAT_UNCATEGORIZED & " (skip this tab)", _
+           "1 = " & ModConfig.CAT_SEGMENT & " (multiple allowed)" & vbCrLf & _
+           "2 = " & ModConfig.CAT_DISCONTINUED & " (single only *)" & vbCrLf & _
+           "3 = " & ModConfig.CAT_INPUT_CONTINUING & " (single only * - REQUIRED)" & vbCrLf & _
+           "4 = " & ModConfig.CAT_JOURNALS_CONTINUING & " (single only *)" & vbCrLf & _
+           "5 = " & ModConfig.CAT_CONSOLE_CONTINUING & " (single only *)" & vbCrLf & _
+           "6 = " & ModConfig.CAT_BS & " (single only *)" & vbCrLf & _
+           "7 = " & ModConfig.CAT_IS & " (single only *)" & vbCrLf & _
+           "8 = " & ModConfig.CAT_PULL_WORKINGS & " (multiple allowed)" & vbCrLf & _
+           "9 = " & ModConfig.CAT_TRIAL_BALANCE & " (single only *)" & vbCrLf & _
+           "10 = " & ModConfig.CAT_UNCATEGORIZED & " (skip this tab)", _
            vbInformation, "Categorization Instructions"
     
     ' Build category list for reference
-    categoryList = "1 = " & CAT_SEGMENT & vbCrLf & _
-                   "2 = " & CAT_DISCONTINUED & vbCrLf & _
-                   "3 = " & CAT_INPUT_CONTINUING & vbCrLf & _
-                   "4 = " & CAT_JOURNALS_CONTINUING & vbCrLf & _
-                   "5 = " & CAT_CONSOLE_CONTINUING & vbCrLf & _
-                   "6 = " & CAT_BS & vbCrLf & _
-                   "7 = " & CAT_IS & vbCrLf & _
-                   "8 = " & CAT_PULL_WORKINGS & vbCrLf & _
-                   "9 = " & CAT_TRIAL_BALANCE & vbCrLf & _
-                   "10 = " & CAT_UNCATEGORIZED
+    categoryList = "1 = " & ModConfig.CAT_SEGMENT & vbCrLf & _
+                   "2 = " & ModConfig.CAT_DISCONTINUED & vbCrLf & _
+                   "3 = " & ModConfig.CAT_INPUT_CONTINUING & vbCrLf & _
+                   "4 = " & ModConfig.CAT_JOURNALS_CONTINUING & vbCrLf & _
+                   "5 = " & ModConfig.CAT_CONSOLE_CONTINUING & vbCrLf & _
+                   "6 = " & ModConfig.CAT_BS & vbCrLf & _
+                   "7 = " & ModConfig.CAT_IS & vbCrLf & _
+                   "8 = " & ModConfig.CAT_PULL_WORKINGS & vbCrLf & _
+                   "9 = " & ModConfig.CAT_TRIAL_BALANCE & vbCrLf & _
+                   "10 = " & ModConfig.CAT_UNCATEGORIZED
     
     ' Main categorization loop with retry capability
     validationPassed = False
@@ -182,7 +151,7 @@ Private Function ShowCategorizationDialog() As Boolean
                         
                         Select Case categoryNumber
                             Case 1
-                                m_TabCategories(i).Category = CAT_SEGMENT
+                                m_TabCategories(i).Category = ModConfig.CAT_SEGMENT
                                 ' Prompt for division name
                                 divisionName = InputBox( _
                                     "Enter the division name for this segment tab:" & vbCrLf & vbCrLf & _
@@ -198,31 +167,31 @@ Private Function ShowCategorizationDialog() As Boolean
                                 m_TabCategories(i).divisionName = Trim(divisionName)
                                 continueLoop = False
                             Case 2
-                                m_TabCategories(i).Category = CAT_DISCONTINUED
+                                m_TabCategories(i).Category = ModConfig.CAT_DISCONTINUED
                                 continueLoop = False
                             Case 3
-                                m_TabCategories(i).Category = CAT_INPUT_CONTINUING
+                                m_TabCategories(i).Category = ModConfig.CAT_INPUT_CONTINUING
                                 continueLoop = False
                             Case 4
-                                m_TabCategories(i).Category = CAT_JOURNALS_CONTINUING
+                                m_TabCategories(i).Category = ModConfig.CAT_JOURNALS_CONTINUING
                                 continueLoop = False
                             Case 5
-                                m_TabCategories(i).Category = CAT_CONSOLE_CONTINUING
+                                m_TabCategories(i).Category = ModConfig.CAT_CONSOLE_CONTINUING
                                 continueLoop = False
                             Case 6
-                                m_TabCategories(i).Category = CAT_BS
+                                m_TabCategories(i).Category = ModConfig.CAT_BS
                                 continueLoop = False
                             Case 7
-                                m_TabCategories(i).Category = CAT_IS
+                                m_TabCategories(i).Category = ModConfig.CAT_IS
                                 continueLoop = False
                             Case 8
-                                m_TabCategories(i).Category = CAT_PULL_WORKINGS
+                                m_TabCategories(i).Category = ModConfig.CAT_PULL_WORKINGS
                                 continueLoop = False
                             Case 9
-                                m_TabCategories(i).Category = CAT_TRIAL_BALANCE
+                                m_TabCategories(i).Category = ModConfig.CAT_TRIAL_BALANCE
                                 continueLoop = False
                             Case 10
-                                m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                                m_TabCategories(i).Category = ModConfig.CAT_UNCATEGORIZED
                                 continueLoop = False
                             Case Else
                                 MsgBox "Invalid number. Please enter a number between 1 and 10.", vbExclamation
@@ -248,7 +217,7 @@ Private Function ShowCategorizationDialog() As Boolean
                 If response = vbYes Then
                     ' Reset and try again
                     For i = 1 To m_TabCount
-                        m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                        m_TabCategories(i).Category = ModConfig.CAT_UNCATEGORIZED
                         m_TabCategories(i).divisionName = ""
                     Next i
                     ' Loop will continue
@@ -263,7 +232,7 @@ Private Function ShowCategorizationDialog() As Boolean
             If response = vbYes Then
                 ' Reset and try again
                 For i = 1 To m_TabCount
-                    m_TabCategories(i).Category = CAT_UNCATEGORIZED
+                    m_TabCategories(i).Category = ModConfig.CAT_UNCATEGORIZED
                     m_TabCategories(i).divisionName = ""
                 Next i
                 ' Loop will continue
@@ -290,8 +259,7 @@ Private Function ValidateSingleTabCategories() As Boolean
     Dim i As Long
     Dim msg As String
     
-    singleCategories = Array(CAT_DISCONTINUED, CAT_INPUT_CONTINUING, CAT_JOURNALS_CONTINUING, _
-                            CAT_CONSOLE_CONTINUING, CAT_BS, CAT_IS, CAT_TRIAL_BALANCE)
+    singleCategories = ModConfig.GetSingleTabCategories()
     
     For Each cat In singleCategories
         count = 0
@@ -324,7 +292,7 @@ Private Function ShowUncategorizedTabs() As Boolean
     count = 0
     
     For i = 1 To m_TabCount
-        If m_TabCategories(i).Category = CAT_UNCATEGORIZED Then
+        If m_TabCategories(i).Category = ModConfig.CAT_UNCATEGORIZED Then
             count = count + 1
             uncategorizedList = uncategorizedList & "- " & m_TabCategories(i).tabName & vbCrLf
         End If
@@ -356,7 +324,7 @@ Public Function ValidateCategories() As Boolean
     Dim missingList As String
     
     ' These categories are required for the tool to work
-    requiredCategories = Array(CAT_INPUT_CONTINUING)
+    requiredCategories = ModConfig.GetRequiredCategories()
     
     For Each cat In requiredCategories
         found = False
@@ -406,7 +374,7 @@ Public Function GetCategoryForTab(tabName As String) As String
         End If
     Next i
     
-    GetCategoryForTab = CAT_UNCATEGORIZED
+    GetCategoryForTab = ModConfig.CAT_UNCATEGORIZED
 End Function
 
 ' Get division name for a segment tab
