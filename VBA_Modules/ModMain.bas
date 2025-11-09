@@ -1,4 +1,3 @@
-Attribute VB_Name = "ModMain"
 Option Explicit
 
 ' ============================================================================
@@ -50,7 +49,7 @@ Public Sub StartScopingTool()
     Dim tabList As Collection
     Set tabList = DiscoverTabs()
     
-    If tabList.Count = 0 Then
+    If tabList.count = 0 Then
         MsgBox "No tabs found in the workbook.", vbExclamation
         Exit Sub
     End If
