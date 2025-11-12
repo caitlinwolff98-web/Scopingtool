@@ -94,8 +94,6 @@ End Sub
 ' Collect all unique FSLi names from all tables with metadata
 Private Function CollectAllFSLiNames() As Collection
     Dim fsliDict As Object ' Dictionary to track unique FSLi
-    Dim ws As Worksheet
-    Dim tab As Worksheet
     Dim lastRow As Long
     Dim row As Long
     Dim fsliName As String
