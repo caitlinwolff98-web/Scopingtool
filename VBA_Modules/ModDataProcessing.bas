@@ -243,11 +243,24 @@ Private Function AnalyzeFSLiStructure(ws As Worksheet, columnType As String) As 
             GoTo NextRow
         End If
         
-        ' Detect statement type
+        ' Detect statement type and skip statement headers
         If InStr(1, fsliName, "income statement", vbTextCompare) > 0 Then
             currentStatement = "Income Statement"
+            ' Skip if this is ONLY a statement header (not a line item)
+            If IsStatementHeader(fsliName) Then
+                GoTo NextRow
+            End If
         ElseIf InStr(1, fsliName, "balance sheet", vbTextCompare) > 0 Then
             currentStatement = "Balance Sheet"
+            ' Skip if this is ONLY a statement header (not a line item)
+            If IsStatementHeader(fsliName) Then
+                GoTo NextRow
+            End If
+        End If
+        
+        ' Skip other common header patterns
+        If IsStatementHeader(fsliName) Then
+            GoTo NextRow
         End If
         
         ' Create FSLi info dictionary
@@ -286,6 +299,41 @@ Private Function DetectIndentationLevel(ws As Worksheet, row As Long, col As Lon
         DetectIndentationLevel = 0
     End If
     On Error GoTo 0
+End Function
+
+' Check if a line is a statement header (not an actual FSLI)
+Private Function IsStatementHeader(fsliName As String) As Boolean
+    Dim upperName As String
+    upperName = UCase(Trim(fsliName))
+    
+    ' Common statement headers to exclude
+    IsStatementHeader = False
+    
+    ' Exact matches for statement headers
+    If upperName = "INCOME STATEMENT" Or _
+       upperName = "BALANCE SHEET" Or _
+       upperName = "STATEMENT OF FINANCIAL POSITION" Or _
+       upperName = "STATEMENT OF PROFIT OR LOSS" Or _
+       upperName = "STATEMENT OF COMPREHENSIVE INCOME" Or _
+       upperName = "CASH FLOW STATEMENT" Or _
+       upperName = "STATEMENT OF CASH FLOWS" Or _
+       upperName = "STATEMENT OF CHANGES IN EQUITY" Then
+        IsStatementHeader = True
+        Exit Function
+    End If
+    
+    ' Check if it's a pure header without additional detail
+    ' (e.g., "INCOME STATEMENT" yes, "INCOME STATEMENT - Revenue" no)
+    If Len(upperName) < 50 Then ' Headers are typically short
+        ' Check for statement indicators without line item details
+        If (upperName = "INCOME STATEMENT" Or upperName = "BALANCE SHEET") And _
+           InStr(upperName, "-") = 0 And _
+           InStr(upperName, ":") = 0 And _
+           InStr(upperName, "TOTAL") = 0 Then
+            IsStatementHeader = True
+            Exit Function
+        End If
+    End If
 End Function
 
 ' Check if entire row is empty
