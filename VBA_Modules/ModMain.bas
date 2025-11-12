@@ -69,7 +69,27 @@ Public Sub StartScopingTool()
     ' Step 6: Create output workbook for tables
     CreateOutputWorkbook
     
-    ' Step 7: Process data and create tables
+    ' Step 7: Configure threshold-based scoping (optional)
+    Dim thresholds As Collection
+    Dim scopedPacks As Object
+    Dim applyThresholds As VbMsgBoxResult
+    
+    applyThresholds = MsgBox("Would you like to configure threshold-based automatic scoping?" & vbCrLf & vbCrLf & _
+                             "This will allow you to:" & vbCrLf & _
+                             "- Select specific FSLIs for threshold analysis" & vbCrLf & _
+                             "- Set threshold values for each FSLI" & vbCrLf & _
+                             "- Automatically mark packs as 'Scoped In' based on thresholds" & vbCrLf & vbCrLf & _
+                             "Click YES to configure thresholds, NO to skip.", _
+                             vbYesNo + vbQuestion, "Threshold-Based Scoping")
+    
+    If applyThresholds = vbYes Then
+        Set thresholds = ModThresholdScoping.ConfigureAndApplyThresholds()
+        If thresholds.Count > 0 Then
+            Set scopedPacks = ModThresholdScoping.ApplyThresholdsToData(thresholds)
+        End If
+    End If
+    
+    ' Step 8: Process data and create tables
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
     
@@ -78,19 +98,43 @@ Public Sub StartScopingTool()
     Application.Calculation = xlCalculationAutomatic
     Application.ScreenUpdating = True
     
-    ' Step 8: Create Power BI integration assets
+    ' Step 9: Create threshold configuration sheet if thresholds were applied
+    If applyThresholds = vbYes And thresholds.Count > 0 Then
+        ModThresholdScoping.CreateThresholdConfigSheet thresholds, scopedPacks
+    End If
+    
+    ' Step 10: Create scoping summary sheet
+    Application.StatusBar = "Creating scoping summary..."
+    CreateScopingSummarySheet scopedPacks
+    Application.StatusBar = False
+    
+    ' Step 11: Create interactive Excel dashboard
+    Application.StatusBar = "Creating interactive dashboard..."
+    ModInteractiveDashboard.CreateInteractiveDashboard
+    ModInteractiveDashboard.AddInteractiveFilters
+    ModInteractiveDashboard.CreateScopingCalculator
+    Application.StatusBar = False
+    
+    ' Step 12: Create Power BI integration assets
     Application.StatusBar = "Creating Power BI integration assets..."
     ModPowerBIIntegration.CreateAllPowerBIAssets
     Application.StatusBar = False
     
-    ' Step 9: Display completion message
+    ' Step 13: Save the output workbook with standardized name
+    SaveOutputWorkbook
+    
+    ' Step 14: Display completion message
     MsgBox "Scoping tool completed successfully!" & vbCrLf & vbCrLf & _
-           "Tables have been created in: " & g_OutputWorkbook.Name & vbCrLf & vbCrLf & _
-           "Power BI integration assets have been added:" & vbCrLf & _
-           "- Metadata sheet with tool information" & vbCrLf & _
-           "- Scoping configuration template" & vbCrLf & _
-           "- DAX measures guide" & vbCrLf & _
-           "- Entity scoping summary" & vbCrLf & vbCrLf & _
+           "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
+           "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
+           "Generated assets:" & vbCrLf & _
+           "- Data tables for analysis" & vbCrLf & _
+           "- Threshold configuration (if applied)" & vbCrLf & _
+           "- Scoping summary with recommendations" & vbCrLf & _
+           "- Interactive Excel dashboard" & vbCrLf & _
+           "- Scoping calculator" & vbCrLf & _
+           "- Power BI integration metadata" & vbCrLf & vbCrLf & _
+           "The workbook can be used standalone or with Power BI!" & vbCrLf & _
            "See POWERBI_INTEGRATION_GUIDE.md for next steps.", _
            vbInformation, "Process Complete"
     
@@ -101,6 +145,180 @@ ErrorHandler:
     Application.ScreenUpdating = True
     MsgBox "An error occurred: " & Err.Description & vbCrLf & _
            "Error Number: " & Err.Number, vbCritical, "Error"
+End Sub
+
+' Save output workbook with standardized name
+Private Sub SaveOutputWorkbook()
+    On Error GoTo ErrorHandler
+    
+    Dim savePath As String
+    Dim fileName As String
+    
+    ' Standard output file name
+    fileName = "Bidvest Scoping Tool Output.xlsx"
+    
+    ' Use the same directory as the source workbook
+    savePath = g_SourceWorkbook.Path & Application.PathSeparator & fileName
+    
+    ' Save the workbook
+    Application.DisplayAlerts = False
+    g_OutputWorkbook.SaveAs fileName:=savePath, FileFormat:=xlOpenXMLWorkbook
+    Application.DisplayAlerts = True
+    
+    Exit Sub
+    
+ErrorHandler:
+    Application.DisplayAlerts = True
+    ' If save fails, just leave it unsaved for user to manually save
+    Debug.Print "Could not auto-save output workbook: " & Err.Description
+End Sub
+
+' Create scoping summary sheet with recommendations
+Private Sub CreateScopingSummarySheet(scopedPacks As Object)
+    On Error GoTo ErrorHandler
+    
+    Dim summaryWs As Worksheet
+    Dim row As Long
+    Dim inputTab As Worksheet
+    Dim packDict As Object
+    Dim col As Long
+    Dim lastCol As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim isScopedIn As String
+    Dim suggestedForScope As String
+    Dim packKey As Variant
+    
+    ' Check if sheet already exists
+    On Error Resume Next
+    Set summaryWs = g_OutputWorkbook.Worksheets("Scoping Summary")
+    On Error GoTo ErrorHandler
+    
+    If summaryWs Is Nothing Then
+        Set summaryWs = g_OutputWorkbook.Worksheets.Add
+        summaryWs.Name = "Scoping Summary"
+    Else
+        summaryWs.Cells.Clear
+    End If
+    
+    ' Get input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then Exit Sub
+    
+    ' Create pack dictionary
+    Set packDict = CreateObject("Scripting.Dictionary")
+    
+    ' Collect all packs from input tab
+    lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+    For col = 3 To lastCol
+        packCode = Trim(inputTab.Cells(8, col).Value)
+        packName = Trim(inputTab.Cells(7, col).Value)
+        
+        If packCode <> "" And packName <> "" Then
+            If Not packDict.Exists(packCode) Then
+                Dim packInfo As Object
+                Set packInfo = CreateObject("Scripting.Dictionary")
+                packInfo("Name") = packName
+                packInfo("Code") = packCode
+                
+                ' Check if scoped in by threshold
+                If Not scopedPacks Is Nothing Then
+                    If scopedPacks.Exists(packCode) Then
+                        packInfo("ScopedIn") = "Yes (Threshold)"
+                        packInfo("Suggested") = "Yes"
+                    Else
+                        packInfo("ScopedIn") = "No"
+                        packInfo("Suggested") = "Review Required"
+                    End If
+                Else
+                    packInfo("ScopedIn") = "Not Yet Determined"
+                    packInfo("Suggested") = "Review Required"
+                End If
+                
+                packDict.Add packCode, packInfo
+            End If
+        End If
+    Next col
+    
+    ' Write header
+    row = 1
+    With summaryWs
+        .Cells(row, 1).Value = "SCOPING SUMMARY"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 14
+        row = row + 2
+        
+        ' Column headers
+        .Cells(row, 1).Value = "Pack Code"
+        .Cells(row, 2).Value = "Pack Name"
+        .Cells(row, 3).Value = "Scoped In"
+        .Cells(row, 4).Value = "Suggested for Scope"
+        .Range("A" & row & ":D" & row).Font.Bold = True
+        .Range("A" & row & ":D" & row).Interior.Color = RGB(68, 114, 196)
+        .Range("A" & row & ":D" & row).Font.Color = RGB(255, 255, 255)
+        row = row + 1
+        
+        ' Write pack data
+        For Each packKey In packDict.Keys
+            Set packInfo = packDict(packKey)
+            .Cells(row, 1).Value = packInfo("Code")
+            .Cells(row, 2).Value = packInfo("Name")
+            .Cells(row, 3).Value = packInfo("ScopedIn")
+            .Cells(row, 4).Value = packInfo("Suggested")
+            
+            ' Color code the Suggested column
+            If packInfo("Suggested") = "Yes" Then
+                .Cells(row, 4).Interior.Color = RGB(198, 239, 206) ' Light green
+            Else
+                .Cells(row, 4).Interior.Color = RGB(255, 235, 156) ' Light yellow
+            End If
+            
+            row = row + 1
+        Next packKey
+        
+        ' Summary statistics
+        row = row + 2
+        .Cells(row, 1).Value = "SUMMARY STATISTICS"
+        .Cells(row, 1).Font.Bold = True
+        row = row + 1
+        
+        .Cells(row, 1).Value = "Total Packs:"
+        .Cells(row, 2).Value = packDict.Count
+        row = row + 1
+        
+        If Not scopedPacks Is Nothing Then
+            .Cells(row, 1).Value = "Automatically Scoped In:"
+            .Cells(row, 2).Value = scopedPacks.Count
+            row = row + 1
+            
+            .Cells(row, 1).Value = "Requiring Review:"
+            .Cells(row, 2).Value = packDict.Count - scopedPacks.Count
+        Else
+            .Cells(row, 1).Value = "Threshold-Based Scoping:"
+            .Cells(row, 2).Value = "Not Applied"
+        End If
+        
+        ' Auto-fit columns
+        .Columns.AutoFit
+        
+        ' Create table
+        Dim lastDataRow As Long
+        lastDataRow = 3 + packDict.Count ' Header rows + data rows
+        
+        On Error Resume Next
+        Dim tbl As ListObject
+        Set tbl = .ListObjects.Add(xlSrcRange, .Range(.Cells(3, 1), .Cells(lastDataRow, 4)), , xlYes)
+        If Not tbl Is Nothing Then
+            tbl.Name = "Scoping_Summary_Table"
+            tbl.TableStyle = "TableStyleMedium2"
+        End If
+        On Error GoTo ErrorHandler
+    End With
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating scoping summary: " & Err.Description
 End Sub
 
 ' Get workbook name from user

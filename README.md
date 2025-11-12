@@ -6,21 +6,32 @@
 
 ## Overview
 
-The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script for Microsoft Excel designed to automate the analysis of TGK consolidation workbooks and create structured tables for Power BI integration. This tool streamlines the audit scoping process by:
+The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comprehensive, production-ready VBA solution for Microsoft Excel designed to automate the analysis of consolidation workbooks and create structured, interactive outputs for audit scoping. This tool streamlines the entire scoping process by:
 
 - Automatically categorizing worksheets in consolidation workbooks
-- Dynamically analyzing Financial Statement Line Items (FSLi) hierarchies
+- Dynamically analyzing Financial Statement Line Items (FSLi) hierarchies with intelligent header filtering
 - Extracting entity and pack information across multiple segments
-- Generating structured tables optimized for Power BI import
+- **NEW:** Threshold-based automatic scoping with user-configured FSLi selection
+- **NEW:** Interactive Excel dashboard with pivot tables, charts, and calculators
+- Generating structured tables optimized for Power BI import with standardized naming
 - Calculating percentage coverage for scoping analysis
-- Supporting threshold-based and manual scoping methodologies
+- **NEW:** Comprehensive scoping summary with "Suggested for Scope" recommendations
+- Supporting both standalone Excel analysis and Power BI integration
 
 ## Key Features
 
-### 🔍 Intelligent Analysis
+### 🎯 Threshold-Based Auto-Scoping (NEW!)
+- **Interactive FSLI Selection**: Choose which FSLIs to apply thresholds to
+- **Custom Thresholds**: Set individual threshold values for each FSLI
+- **Automatic Scoping**: Packs exceeding thresholds automatically marked as "Scoped In"
+- **Configuration Tracking**: Threshold settings documented in output workbook
+- **Coverage Analysis**: Track scoping coverage based on thresholds
+
+### 🔍 Intelligent Analysis (Enhanced!)
 - **Dynamic Tab Discovery**: Automatically identifies and lists all worksheets
 - **Flexible Categorization**: User-driven tab categorization with validation
-- **Smart FSLi Detection**: Recognizes totals, subtotals, and hierarchies
+- **Smart FSLi Detection**: **IMPROVED** - Now correctly filters out statement headers like "INCOME STATEMENT" and "BALANCE SHEET"
+- **Hierarchy Recognition**: Recognizes totals, subtotals, and indentation levels
 - **Multi-Currency Support**: Handles both entity and consolidation currencies
 
 ### 📊 Comprehensive Table Generation
@@ -28,23 +39,36 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
 - **Journals Table**: Consolidation journal entries
 - **Console Table**: Consolidated financial data
 - **Discontinued Table**: Discontinued operations
-- **FSLi Key Table**: Master reference for all FSLi entries
+- **FSLi Key Table**: Master reference for all FSLi entries with metadata
 - **Pack Company Table**: Entity reference with divisions
-- **Percentage Tables**: Automatic coverage percentage calculations
+- **Percentage Tables**: Automatic coverage percentage calculations (4 tables)
+- **NEW: Scoping Summary**: Pack-level summary with "Suggested for Scope" column
+- **NEW: Threshold Configuration**: Documents applied thresholds and results
 
-### 🔄 Power BI Integration
-- Tables structured for seamless Power BI import
+### 📈 Interactive Excel Dashboard (NEW!)
+- **Standalone Functionality**: Full scoping analysis without Power BI
+- **Pivot Tables**: Dynamic pack and FSLI analysis
+- **Summary Charts**: Visual representation of scoping status
+- **Scoping Calculator**: Coverage calculator with target setting
+- **Auto-Filters**: Easy data exploration and filtering
+- **Key Metrics Display**: Total packs, scoped in, pending review, coverage %
+
+### 🔄 Power BI Integration (Enhanced!)
+- **Standardized Output**: Always saves as "Bidvest Scoping Tool Output.xlsx"
+- **Auto-Refresh Ready**: Consistent naming enables Power BI auto-refresh
+- **Complete Setup Guide**: Step-by-step Power BI configuration (POWERBI_SETUP_COMPLETE.md)
+- **DAX Measures Library**: Pre-built measures for common analyses
+- **Relationship Fix**: Clear guidance on Pack Code vs Pack Name connections
 - Support for unpivoting and data transformation
-- DAX measure templates included
 - Interactive scoping workflows
-- Threshold-based automation
 
 ### 🛡️ Robust & Reliable
-- Comprehensive error handling
-- Validation at each step
-- Progress indicators
-- Detailed logging
+- Comprehensive error handling in all modules
+- Validation at each step with user feedback
+- Progress indicators (status bar updates)
+- Detailed logging for troubleshooting
 - Mathematical accuracy checks
+- **Enhanced FSLI filtering** to exclude headers
 
 ## Quick Start
 
@@ -69,6 +93,8 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
      - `ModDataProcessing.bas`
      - `ModTableGeneration.bas`
      - `ModPowerBIIntegration.bas`
+     - **NEW:** `ModThresholdScoping.bas` (threshold-based scoping)
+     - **NEW:** `ModInteractiveDashboard.bas` (Excel dashboard)
 
 4. **Add Button**
    - Return to Excel
@@ -87,26 +113,37 @@ The **TGK Consolidation Scoping Tool** is a comprehensive, adaptive VBA script f
    - Enter consolidation workbook name
    - Categorize tabs using pop-up dialogs (enter numbers 1-9)
    - Select column type (Consolidation recommended)
+   - **NEW:** Optionally configure threshold-based scoping:
+     - Select FSLIs for threshold analysis
+     - Enter threshold values for each FSLI
+     - Packs exceeding thresholds automatically scoped in
 
 3. **Review**
-   - Check generated tables in new workbook
-   - Verify data accuracy
-   - Export for Power BI
+   - Output saved as: **"Bidvest Scoping Tool Output.xlsx"**
+   - Check **Scoping Summary** sheet for recommendations
+   - Review **Threshold Configuration** (if applicable)
+   - Use **Interactive Dashboard** for analysis
+   - Verify data accuracy in generated tables
+   - Use **Scoping Calculator** for coverage planning
 
-4. **Analyze in Power BI**
-   - Import tables into Power BI
-   - Follow Power BI Integration Guide
-   - Create scoping dashboards
+4. **Analyze**
+   - **Option A - Excel Only**: Use Interactive Dashboard with pivot tables and charts
+   - **Option B - Power BI**: Import tables into Power BI
+     - File automatically named for easy refresh
+     - Follow **POWERBI_SETUP_COMPLETE.md** for step-by-step setup
+     - Create comprehensive scoping dashboards
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete user guide, technical specs, troubleshooting |
-| [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) | v1.1.0 improvements, bug fixes, and enhancements |
-| [POWERBI_INTEGRATION_GUIDE.md](POWERBI_INTEGRATION_GUIDE.md) | Step-by-step Power BI setup and DAX measures |
+| [POWERBI_SETUP_COMPLETE.md](POWERBI_SETUP_COMPLETE.md) | **NEW** Comprehensive Power BI setup with DAX measures and relationship fixes |
+| [POWERBI_INTEGRATION_GUIDE.md](POWERBI_INTEGRATION_GUIDE.md) | Original Power BI integration guide |
+| [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) | Version history, bug fixes, and enhancements |
 | [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) | Detailed installation instructions |
 | [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) | Real-world usage scenarios and examples |
+| [VBA_Modules/README.md](VBA_Modules/README.md) | **UPDATED** Complete module documentation with new features |
 
 ## Requirements
 
@@ -133,11 +170,18 @@ The tool expects TGK consolidation workbooks with:
 ### Module Structure
 
 ```
-TGK Scoping Tool
+Bidvest Scoping Tool (8 Modules)
 ├── ModMain.bas
 │   ├── Entry point (StartScopingTool)
 │   ├── Workbook validation
-│   └── Orchestration logic
+│   ├── Orchestration logic
+│   ├── NEW: SaveOutputWorkbook (standardized naming)
+│   └── NEW: CreateScopingSummarySheet
+│
+├── ModConfig.bas
+│   ├── Configuration constants
+│   ├── Utility functions
+│   └── Validation helpers
 │
 ├── ModTabCategorization.bas
 │   ├── Tab discovery
@@ -148,12 +192,31 @@ TGK Scoping Tool
 │   ├── Cell unmerging
 │   ├── Column detection
 │   ├── FSLi analysis
+│   ├── NEW: IsStatementHeader (filters headers)
 │   └── Data extraction
 │
-└── ModTableGeneration.bas
-    ├── Table creation
-    ├── Percentage calculations
-    └── Formatting
+├── ModTableGeneration.bas
+│   ├── Table creation
+│   ├── Percentage calculations
+│   └── Formatting
+│
+├── ModPowerBIIntegration.bas
+│   ├── Power BI metadata
+│   ├── Scoping configuration
+│   └── DAX measures guide
+│
+├── ModThresholdScoping.bas (NEW)
+│   ├── FSLI selection wizard
+│   ├── Threshold configuration
+│   ├── Automatic scoping logic
+│   └── Configuration documentation
+│
+└── ModInteractiveDashboard.bas (NEW)
+    ├── Dashboard creation
+    ├── Pivot table generation
+    ├── Chart creation
+    ├── Scoping calculator
+    └── Auto-filter setup
 ```
 
 ### Data Flow
@@ -163,17 +226,23 @@ Consolidation Workbook
         ↓
 Tab Categorization
         ↓
+Threshold Configuration (Optional - NEW)
+        ↓
 Column Selection
         ↓
-FSLi Analysis
+FSLi Analysis (Enhanced - Filters Headers)
         ↓
 Data Extraction
         ↓
 Table Generation
         ↓
-Output Workbook
+Scoping Summary Creation (NEW)
         ↓
-Power BI Import
+Interactive Dashboard (NEW)
+        ↓
+Output Workbook ("Bidvest Scoping Tool Output.xlsx")
+        ↓
+Power BI Import (Optional)
         ↓
 Scoping Analysis
 ```
@@ -219,31 +288,71 @@ Scoping Analysis
 
 ### Reference Tables
 6. **FSLi Key Table**
-   - All unique FSLi entries
-   - Links to all data tables
-   - Percentage columns
+   - All unique FSLi entries (headers excluded)
+   - Statement type metadata
+   - Total/subtotal indicators
+   - Indentation level
 
 7. **Pack Number Company Table**
    - Pack name, code, division
    - Master entity reference
 
-## Power BI Scoping Workflows
+### New Interactive Sheets (v2.0)
+8. **Scoping Summary** (NEW)
+   - Pack-level scoping status
+   - "Suggested for Scope" recommendations
+   - Color-coded suggestions
+   - Summary statistics
 
-### 1. Threshold-Based Scoping
-- Select key FSLi (e.g., "Net Revenue")
-- Set monetary threshold (e.g., $300M)
-- Automatically scope in packs exceeding threshold
-- Include all FSLis for scoped packs
+9. **Threshold Configuration** (NEW - if thresholds applied)
+   - Configured FSLIs and threshold values
+   - Packs automatically scoped in
+   - Triggering FSLI for each pack
 
-### 2. Manual Pack/FSLi Selection
+10. **Interactive Dashboard** (NEW)
+    - Key metrics display
+    - Pivot tables
+    - Summary charts
+    - Instructions
+
+11. **Scoping Calculator** (NEW)
+    - Coverage calculator
+    - Target setting
+    - Packs needed for target
+
+## Scoping Workflows
+
+### 1. Threshold-Based Scoping (Enhanced - NEW!)
+**In VBA Tool:**
+- User prompted to select FSLIs for threshold analysis
+- Enter threshold value for each FSLI (e.g., $300M for Revenue)
+- Tool analyzes data and automatically marks packs exceeding thresholds as "Scoped In"
+- Configuration documented in "Threshold Configuration" sheet
+
+**In Power BI:**
+- Import "Scoping Summary" table
+- Filter by "Scoped In" = "Yes"
+- Review "Threshold Configuration" for audit trail
+- Use DAX measures for dynamic threshold analysis
+
+### 2. Excel-Based Interactive Analysis (NEW!)
+- Use "Interactive Dashboard" sheet
+- Explore data with pivot tables and charts
+- Use "Scoping Calculator" for coverage planning
+- Apply auto-filters for detailed analysis
+- No Power BI needed!
+
+### 3. Manual Pack/FSLi Selection (Power BI)
 - Select specific packs
 - Select specific FSLis
 - Fine-tune scope coverage
 - Export for documentation
 
-### 3. Hybrid Approach
-- Start with threshold scoping
-- Add manual selections
+### 4. Hybrid Approach
+- Start with threshold-based auto-scoping in VBA
+- Review suggestions in Scoping Summary
+- Use Interactive Dashboard for initial analysis
+- Fine-tune in Power BI if needed
 - Optimize coverage percentage
 - Document methodology
 
@@ -293,6 +402,9 @@ See [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) for more detailed scenarios.
 | "Required tabs are missing" | Categorize at least one tab as Input Continuing |
 | Tool runs slowly | Disable screen updating, use manual calculation |
 | No data in tables | Verify row 6-8 structure in consolidation workbook |
+| **"INCOME STATEMENT" showing as FSLI** | **FIXED in v2.0** - Headers now filtered automatically |
+| **"Suggested for Scope" column empty** | **FIXED in v2.0** - Now populated with recommendations |
+| **Pack Names not connecting in Power BI** | Use Pack Code for relationships (see POWERBI_SETUP_COMPLETE.md) |
 
 See [DOCUMENTATION.md](DOCUMENTATION.md) for comprehensive troubleshooting.
 
@@ -339,7 +451,39 @@ For questions, issues, or customization:
 
 ## Version History
 
-### v1.1.0 (Current - November 2024)
+### v2.0.0 (Current - November 2024)
+**MAJOR UPDATE - Comprehensive Enhancement Release**
+
+**🎯 New Features:**
+- ✨ **Threshold-Based Auto-Scoping**: User-configurable FSLI thresholds with automatic pack scoping
+- ✨ **Interactive Excel Dashboard**: Full scoping analysis without Power BI requirement
+- ✨ **Scoping Summary**: Complete with "Suggested for Scope" recommendations
+- ✨ **Standardized Output**: Always saves as "Bidvest Scoping Tool Output.xlsx"
+- ✨ **Scoping Calculator**: Coverage calculator with target planning
+
+**🔧 Bug Fixes & Improvements:**
+- ✅ Fixed FSLI detection - now correctly filters out "INCOME STATEMENT" and "BALANCE SHEET" headers
+- ✅ Fixed "Suggested for Scope" column - now properly populated
+- ✅ Enhanced total/subtotal detection logic
+- ✅ Better identification of actual line items vs headers
+
+**📦 New Modules:**
+- ModThresholdScoping.bas (350 lines) - Threshold configuration and automation
+- ModInteractiveDashboard.bas (285 lines) - Excel-based interactive features
+
+**📚 Documentation:**
+- POWERBI_SETUP_COMPLETE.md - Comprehensive Power BI setup guide
+- Enhanced DAX measures library
+- Fixed Pack Name/Pack Code relationship guidance
+- Complete auto-refresh configuration
+
+**📊 Output Enhancement:**
+- 20+ sheets generated (was 14)
+- Pivot tables and charts included
+- Auto-filters enabled
+- Color-coded recommendations
+
+### v1.1.0 (November 2024)
 **Major Update - Enhanced Power BI Integration**
 - 🔧 Fixed ambiguous name error in VBA code
 - ✨ Added ModConfig for centralized configuration
@@ -359,10 +503,11 @@ For questions, issues, or customization:
 
 ## Roadmap
 
-### v1.2.0 (Planned)
-- [ ] Direct Power BI API integration
-- [ ] Automated threshold detection
-- [ ] Enhanced scoping suggestions
+### v2.1.0 (Planned)
+- [ ] ✅ Threshold-Based Auto-Scoping (COMPLETED in v2.0)
+- [ ] ✅ Interactive Excel Dashboard (COMPLETED in v2.0)
+- [ ] ✅ Enhanced FSLI Detection (COMPLETED in v2.0)
+- [ ] Direct Power BI .pbix file generation
 - [ ] Historical comparison features
 
 ### Future Enhancements
@@ -394,4 +539,25 @@ Designed for audit professionals working with TGK consolidation systems. Built t
 
 ---
 
+**Current Version:** 2.0.0  
+**Last Updated:** November 2024  
+**Platform:** Microsoft Excel with VBA  
+**Integration:** Microsoft Power BI (Optional)  
+**Output Format:** Bidvest Scoping Tool Output.xlsx (Standardized)
+
+---
+
+## Quick Links
+
+- [Complete Documentation](DOCUMENTATION.md)
+- [Power BI Setup Guide (NEW!)](POWERBI_SETUP_COMPLETE.md)
+- [Power BI Integration Guide](POWERBI_INTEGRATION_GUIDE.md)
+- [Installation Guide](INSTALLATION_GUIDE.md)
+- [Usage Examples](USAGE_EXAMPLES.md)
+- [Module Documentation](VBA_Modules/README.md)
+
+---
+
 **Need Help?** Start with the [Quick Start](#quick-start) section above, then refer to the detailed documentation for your specific use case.
+
+**What's New in v2.0?** See [Version History](#version-history) for complete feature list and improvements.
