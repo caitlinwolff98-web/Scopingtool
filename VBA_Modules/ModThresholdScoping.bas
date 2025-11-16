@@ -332,7 +332,8 @@ Public Function ApplyThresholdsToData(thresholds As Collection) As Object
                             ' Get pack code from row 8
                             packCode = Trim(inputTab.Cells(8, col).Value)
                             
-                            If packCode <> "" Then
+                            ' Exclude consolidated pack
+                            If packCode <> "" And packCode <> g_ConsolidatedPackCode Then
                                 ' Mark this pack as scoped in
                                 If Not scopedPacks.Exists(packCode) Then
                                     scopedPacks.Add packCode, fsliName ' Store which FSLI triggered it

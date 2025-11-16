@@ -207,71 +207,246 @@ Public Sub CreateDAXMeasuresGuide()
     
     row = 1
     With daxWs
-        .Cells(row, 1).Value = "DAX Measure Templates for Scoping Analysis"
+        .Cells(row, 1).Value = "DAX Measure Templates for Dynamic Scoping Analysis"
         .Cells(row, 1).Font.Bold = True
         .Cells(row, 1).Font.Size = 14
+        .Cells(row, 1).Font.Color = RGB(0, 112, 192)
         row = row + 2
         
-        ' Total Amount measure
-        .Cells(row, 1).Value = "Measure 1: Total Amount"
-        .Cells(row, 1).Font.Bold = True
+        ' Introduction
+        .Cells(row, 1).Value = "Use these DAX measures in Power BI for interactive scoping with dynamic updates."
+        .Cells(row, 1).Font.Italic = True
         row = row + 1
-        .Cells(row, 1).Value = "Total Amount = SUM('Full Input Table'[Amount])"
+        .Cells(row, 1).Value = "All measures automatically exclude the consolidated entity (Is Consolidated = 'Yes')."
+        .Cells(row, 1).Font.Italic = True
+        row = row + 2
+        
+        ' Measure 1: Total Packs (Excluding Consolidated)
+        .Cells(row, 1).Value = "Measure 1: Total Packs (Excluding Consolidated)"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Total Packs = "
+        row = row + 1
+        .Cells(row, 1).Value = "CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "    DISTINCTCOUNT('Scoping Control Table'[Pack Code]),"
+        row = row + 1
+        .Cells(row, 1).Value = "    'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = ")"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Size = 10
+        row = row + 2
+        
+        ' Measure 2: Scoped In Packs Count
+        .Cells(row, 1).Value = "Measure 2: Scoped In Packs Count"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Scoped In Packs = "
+        row = row + 1
+        .Cells(row, 1).Value = "CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "    DISTINCTCOUNT('Scoping Control Table'[Pack Code]),"
+        row = row + 1
+        .Cells(row, 1).Value = "    'Scoping Control Table'[Scoping Status] = ""Scoped In"","
+        row = row + 1
+        .Cells(row, 1).Value = "    'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = ")"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Size = 10
+        row = row + 2
+        
+        ' Measure 3: Scoping Coverage %
+        .Cells(row, 1).Value = "Measure 3: Scoping Coverage % (Overall)"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Scoping Coverage % = "
+        row = row + 1
+        .Cells(row, 1).Value = "VAR ScopedTotal = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Scoping Status] = ""Scoped In"","
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "VAR GrandTotal = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "RETURN"
+        row = row + 1
+        .Cells(row, 1).Value = "DIVIDE(ABS(ScopedTotal), ABS(GrandTotal), 0)"
+        .Range(.Cells(row - 13, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 13, 1), .Cells(row, 1)).Font.Size = 10
+        row = row + 2
+        
+        ' Measure 4: Coverage % by FSLi
+        .Cells(row, 1).Value = "Measure 4: Coverage % by FSLi"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Coverage % by FSLi = "
+        row = row + 1
+        .Cells(row, 1).Value = "VAR CurrentFSLi = SELECTEDVALUE('Scoping Control Table'[FSLi])"
+        row = row + 1
+        .Cells(row, 1).Value = "VAR ScopedAmount = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[FSLi] = CurrentFSLi,"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Scoping Status] = ""Scoped In"","
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "VAR TotalAmount = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[FSLi] = CurrentFSLi,"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "RETURN"
+        row = row + 1
+        .Cells(row, 1).Value = "DIVIDE(ABS(ScopedAmount), ABS(TotalAmount), 0)"
+        .Range(.Cells(row - 16, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 16, 1), .Cells(row, 1)).Font.Size = 10
+        row = row + 2
+        
+        ' Measure 5: Coverage % by Division
+        .Cells(row, 1).Value = "Measure 5: Coverage % by Division"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Coverage % by Division = "
+        row = row + 1
+        .Cells(row, 1).Value = "VAR CurrentDivision = SELECTEDVALUE('Pack Number Company Table'[Division])"
+        row = row + 1
+        .Cells(row, 1).Value = "VAR ScopedAmount = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Pack Number Company Table'[Division] = CurrentDivision,"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Scoping Status] = ""Scoped In"","
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "VAR TotalAmount = "
+        row = row + 1
+        .Cells(row, 1).Value = "    CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "        SUM('Scoping Control Table'[Amount]),"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Pack Number Company Table'[Division] = CurrentDivision,"
+        row = row + 1
+        .Cells(row, 1).Value = "        'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = "    )"
+        row = row + 1
+        .Cells(row, 1).Value = "RETURN"
+        row = row + 1
+        .Cells(row, 1).Value = "DIVIDE(ABS(ScopedAmount), ABS(TotalAmount), 0)"
+        .Range(.Cells(row - 16, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 16, 1), .Cells(row, 1)).Font.Size = 10
+        row = row + 2
+        
+        ' Measure 6: Untested %
+        .Cells(row, 1).Value = "Measure 6: Untested %"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+        row = row + 1
+        .Cells(row, 1).Value = "Untested % = 1 - [Scoping Coverage %]"
         .Cells(row, 1).Font.Name = "Consolas"
+        .Cells(row, 1).Font.Size = 10
         row = row + 2
         
-        ' Entity Count measure
-        .Cells(row, 1).Value = "Measure 2: Entity Count"
+        ' Measure 7: Scoped Out Packs Count
+        .Cells(row, 1).Value = "Measure 7: Scoped Out Packs Count"
         .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
         row = row + 1
-        .Cells(row, 1).Value = "Entity Count = DISTINCTCOUNT('Full Input Table'[Pack])"
-        .Cells(row, 1).Font.Name = "Consolas"
+        .Cells(row, 1).Value = "Scoped Out Packs = "
+        row = row + 1
+        .Cells(row, 1).Value = "CALCULATE("
+        row = row + 1
+        .Cells(row, 1).Value = "    DISTINCTCOUNT('Scoping Control Table'[Pack Code]),"
+        row = row + 1
+        .Cells(row, 1).Value = "    'Scoping Control Table'[Scoping Status] = ""Scoped Out"","
+        row = row + 1
+        .Cells(row, 1).Value = "    'Scoping Control Table'[Is Consolidated] = ""No"""
+        row = row + 1
+        .Cells(row, 1).Value = ")"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Name = "Consolas"
+        .Range(.Cells(row - 5, 1), .Cells(row, 1)).Font.Size = 10
         row = row + 2
         
-        ' Threshold Flag measure
-        .Cells(row, 1).Value = "Measure 3: Threshold Flag"
-        .Cells(row, 1).Font.Bold = True
+        ' Add notes section
         row = row + 1
-        .Cells(row, 1).Value = "Threshold Flag = IF([Total Amount] > 300000000, ""Yes"", ""No"")"
-        .Cells(row, 1).Font.Name = "Consolas"
+        .Cells(row, 1).Value = "Important Notes:"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 12
+        .Cells(row, 1).Font.Color = RGB(192, 0, 0)
+        row = row + 1
+        
+        .Cells(row, 1).Value = "1. All measures automatically exclude the consolidated entity (Is Consolidated = 'Yes')"
+        row = row + 1
+        .Cells(row, 1).Value = "2. Use 'Scoping Control Table' as the primary table for manual scoping"
+        row = row + 1
+        .Cells(row, 1).Value = "3. Edit 'Scoping Status' column values to change scoping (Scoped In / Not Scoped / Scoped Out)"
+        row = row + 1
+        .Cells(row, 1).Value = "4. Coverage % measures update automatically when Scoping Status changes"
+        row = row + 1
+        .Cells(row, 1).Value = "5. Only Category 1 (Segment Tabs) are treated as divisions in the Division measures"
+        row = row + 1
+        .Cells(row, 1).Value = "6. For PowerBI relationships, use Pack Code (not Pack Name)"
+        row = row + 1
+        .Cells(row, 1).Value = "7. See POWERBI_DYNAMIC_SCOPING_GUIDE.md for complete setup instructions"
         row = row + 2
         
-        ' Coverage Percentage measure
-        .Cells(row, 1).Value = "Measure 4: Coverage %"
+        ' Usage examples
+        .Cells(row, 1).Value = "Usage Examples:"
         .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 12
         row = row + 1
-        .Cells(row, 1).Value = "Coverage % = DIVIDE([Total Amount], CALCULATE([Total Amount], ALL('Full Input Table'[Pack])))"
-        .Cells(row, 1).Font.Name = "Consolas"
-        row = row + 2
         
-        ' Scoped Entities measure
-        .Cells(row, 1).Value = "Measure 5: Scoped Entities"
-        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Value = "• Create KPI cards with [Total Packs], [Scoped In Packs], [Scoping Coverage %]"
         row = row + 1
-        .Cells(row, 1).Value = "Scoped Entities = CALCULATE([Entity Count], 'PowerBI_Scoping'[In Scope] = ""Yes"")"
-        .Cells(row, 1).Font.Name = "Consolas"
-        row = row + 2
-        
-        ' Scoping Percentage measure
-        .Cells(row, 1).Value = "Measure 6: Scoping %"
-        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Value = "• Use slicers on Pack Name and FSLi for interactive filtering"
         row = row + 1
-        .Cells(row, 1).Value = "Scoping % = DIVIDE([Scoped Entities], [Entity Count])"
-        .Cells(row, 1).Font.Name = "Consolas"
-        row = row + 2
-        
-        ' Add notes
+        .Cells(row, 1).Value = "• Create matrix visual with FSLi vs Division showing [Coverage % by FSLi]"
         row = row + 1
-        .Cells(row, 1).Value = "Notes:"
-        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Value = "• Add conditional formatting: Green if Coverage % > 60%, Red if < 40%"
         row = row + 1
-        .Cells(row, 1).Value = "- Adjust threshold values (300000000) based on your scoping methodology"
-        row = row + 1
-        .Cells(row, 1).Value = "- Use these measures in Power BI visuals for interactive scoping"
-        row = row + 1
-        .Cells(row, 1).Value = "- Create calculated columns for more complex logic"
-        row = row + 1
-        .Cells(row, 1).Value = "- See POWERBI_INTEGRATION_GUIDE.md for complete examples"
+        .Cells(row, 1).Value = "• Export Scoping Control Table to Excel for documentation"
         
         ' Auto-fit columns
         .Columns("A:A").ColumnWidth = 120
@@ -432,6 +607,9 @@ Public Sub CreateAllPowerBIAssets()
     ' Create entity scoping summary
     CreateEntityScopingSummary
     
+    ' Create scoping control table for PowerBI
+    CreateScopingControlTable
+    
     Application.StatusBar = False
     Application.ScreenUpdating = True
     
@@ -441,7 +619,8 @@ Public Sub CreateAllPowerBIAssets()
         "- " & ModConfig.POWERBI_METADATA_SHEET & vbCrLf & _
         "- " & ModConfig.POWERBI_SCOPING_SHEET & vbCrLf & _
         "- DAX Measures Guide" & vbCrLf & _
-        "- Entity Scoping Summary" & vbCrLf & vbCrLf & _
+        "- Entity Scoping Summary" & vbCrLf & _
+        "- Scoping Control Table (for dynamic PowerBI scoping)" & vbCrLf & vbCrLf & _
         "Import these into Power BI for enhanced scoping analysis."
     
     Exit Sub
@@ -451,3 +630,147 @@ ErrorHandler:
     Application.StatusBar = False
     ModConfig.ShowError "Power BI Assets Error", "Error creating Power BI assets: " & Err.Description, Err.Number
 End Sub
+
+' Create Scoping Control Table for dynamic PowerBI scoping
+Public Sub CreateScopingControlTable()
+    On Error GoTo ErrorHandler
+    
+    Dim ws As Worksheet
+    Dim inputTab As Worksheet
+    Dim row As Long
+    Dim dataRow As Long
+    Dim col As Long
+    Dim lastCol As Long
+    Dim lastRow As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim fsliName As String
+    Dim amount As Variant
+    Dim packDict As Object
+    Dim division As String
+    
+    ' Create worksheet
+    Set ws = g_OutputWorkbook.Worksheets.Add
+    ws.Name = "Scoping Control Table"
+    
+    ' Get input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then Exit Sub
+    
+    ' Set up headers
+    row = 1
+    With ws
+        .Cells(row, 1).Value = "Pack Name"
+        .Cells(row, 2).Value = "Pack Code"
+        .Cells(row, 3).Value = "Division"
+        .Cells(row, 4).Value = "FSLi"
+        .Cells(row, 5).Value = "Amount"
+        .Cells(row, 6).Value = "Scoping Status"
+        .Cells(row, 7).Value = "Is Consolidated"
+        
+        ' Format headers
+        .Range("A1:G1").Font.Bold = True
+        .Range("A1:G1").Interior.Color = RGB(68, 114, 196)
+        .Range("A1:G1").Font.Color = RGB(255, 255, 255)
+        row = row + 1
+        
+        ' Get dimensions
+        lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+        lastRow = inputTab.Cells(inputTab.Rows.Count, 2).End(xlUp).row
+        
+        ' Create pack dictionary to get divisions
+        Set packDict = CreateObject("Scripting.Dictionary")
+        
+        ' Iterate through each pack (column)
+        For col = 3 To lastCol
+            packCode = Trim(inputTab.Cells(8, col).Value)
+            packName = Trim(inputTab.Cells(7, col).Value)
+            
+            If packCode <> "" And packName <> "" Then
+                ' Get division for this pack
+                division = GetPackDivisionFromTable(packCode)
+                
+                ' Iterate through each FSLi (row)
+                For dataRow = 9 To lastRow
+                    fsliName = Trim(inputTab.Cells(dataRow, 2).Value)
+                    amount = inputTab.Cells(dataRow, col).Value
+                    
+                    ' Only include rows with FSLi names
+                    If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
+                        .Cells(row, 1).Value = packName
+                        .Cells(row, 2).Value = packCode
+                        .Cells(row, 3).Value = division
+                        .Cells(row, 4).Value = fsliName
+                        
+                        If IsNumeric(amount) Then
+                            .Cells(row, 5).Value = CDbl(amount)
+                            .Cells(row, 5).NumberFormat = "#,##0.00"
+                        Else
+                            .Cells(row, 5).Value = 0
+                        End If
+                        
+                        ' Initial scoping status (to be updated in PowerBI)
+                        .Cells(row, 6).Value = "Not Scoped"
+                        
+                        ' Mark if consolidated
+                        If packCode = g_ConsolidatedPackCode Then
+                            .Cells(row, 7).Value = "Yes"
+                        Else
+                            .Cells(row, 7).Value = "No"
+                        End If
+                        
+                        row = row + 1
+                    End If
+                Next dataRow
+            End If
+        Next col
+        
+        ' Auto-fit columns
+        .Columns("A:G").AutoFit
+        
+        ' Create table
+        If row > 2 Then
+            Dim tbl As ListObject
+            On Error Resume Next
+            Set tbl = .ListObjects.Add(xlSrcRange, .Range(.Cells(1, 1), .Cells(row - 1, 7)), , xlYes)
+            If Not tbl Is Nothing Then
+                tbl.Name = "Scoping_Control_Table"
+                tbl.TableStyle = "TableStyleMedium2"
+            End If
+            On Error GoTo ErrorHandler
+        End If
+    End With
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating Scoping Control Table: " & Err.Description
+End Sub
+
+' Helper function to get division from Pack Number Company Table
+Private Function GetPackDivisionFromTable(packCode As String) As String
+    On Error Resume Next
+    
+    Dim packWs As Worksheet
+    Dim lastRow As Long
+    Dim row As Long
+    
+    ' Try to find in Pack Number Company Table
+    Set packWs = g_OutputWorkbook.Worksheets("Pack Number Company Table")
+    
+    If Not packWs Is Nothing Then
+        lastRow = packWs.Cells(packWs.Rows.Count, 2).End(xlUp).row
+        
+        For row = 2 To lastRow
+            If Trim(packWs.Cells(row, 2).Value) = packCode Then
+                GetPackDivisionFromTable = Trim(packWs.Cells(row, 3).Value)
+                Exit Function
+            End If
+        Next row
+    End If
+    
+    ' Default if not found
+    GetPackDivisionFromTable = "Unknown"
+    
+    On Error GoTo 0
+End Function
