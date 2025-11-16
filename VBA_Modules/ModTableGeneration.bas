@@ -222,10 +222,10 @@ Public Sub CreatePackNumberCompanyTable()
         Next col
     Next i
     
-    ' Also process Input, Journals, Console tabs
+    ' Also process Input, Journals, Consol tabs
     Dim inputTab As Worksheet
     Dim journalsTab As Worksheet
-    Dim consoleTab As Worksheet
+    Dim consolTab As Worksheet
     
     Set inputTab = GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
     If Not inputTab Is Nothing Then
@@ -267,12 +267,12 @@ Public Sub CreatePackNumberCompanyTable()
         Next col
     End If
     
-    Set consoleTab = GetTabByCategory(ModConfig.CAT_CONSOLE_CONTINUING)
-    If Not consoleTab Is Nothing Then
-        lastCol = consoleTab.Cells(7, consoleTab.columns.count).End(xlToLeft).Column
+    Set consolTab = GetTabByCategory(ModConfig.CAT_CONSOLE_CONTINUING)
+    If Not consolTab Is Nothing Then
+        lastCol = consolTab.Cells(7, consolTab.columns.count).End(xlToLeft).Column
         For col = 1 To lastCol
-            packName = Trim(consoleTab.Cells(7, col).Value)
-            packCode = Trim(consoleTab.Cells(8, col).Value)
+            packName = Trim(consolTab.Cells(7, col).Value)
+            packCode = Trim(consolTab.Cells(8, col).Value)
             
             If packName <> "" And packCode <> "" Then
                 packKey = packCode
@@ -381,7 +381,7 @@ Public Sub CreatePercentageTables()
         ' Only process main data tables
         If tableName = "Full Input Table" Or _
            tableName = "Journals Table" Or _
-           tableName = "Full Console Table" Or _
+           tableName = "Full Consol Table" Or _
            tableName = "Discontinued Table" Then
             
             CreatePercentageTable ws

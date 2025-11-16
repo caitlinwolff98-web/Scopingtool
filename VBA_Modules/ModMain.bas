@@ -108,6 +108,11 @@ Public Sub StartScopingTool()
     CreateScopingSummarySheet scopedPacks
     Application.StatusBar = False
     
+    ' Step 10a: Create Division-based reporting sheets
+    Application.StatusBar = "Creating division-based reports..."
+    CreateDivisionScopingReports scopedPacks
+    Application.StatusBar = False
+    
     ' Step 11: Create interactive Excel dashboard
     Application.StatusBar = "Creating interactive dashboard..."
     ModInteractiveDashboard.CreateInteractiveDashboard
@@ -131,11 +136,13 @@ Public Sub StartScopingTool()
            "- Data tables for analysis" & vbCrLf & _
            "- Threshold configuration (if applied)" & vbCrLf & _
            "- Scoping summary with recommendations" & vbCrLf & _
+           "- Division-based scoping reports (Scoped In/Out)" & vbCrLf & _
+           "- Scoped In Packs Detail with FSLi amounts" & vbCrLf & _
            "- Interactive Excel dashboard" & vbCrLf & _
            "- Scoping calculator" & vbCrLf & _
            "- Power BI integration metadata" & vbCrLf & vbCrLf & _
            "The workbook can be used standalone or with Power BI!" & vbCrLf & _
-           "See POWERBI_INTEGRATION_GUIDE.md for next steps.", _
+           "See POWERBI_SETUP_COMPLETE.md for next steps.", _
            vbInformation, "Process Complete"
     
     Exit Sub
@@ -373,3 +380,376 @@ Private Sub CreateOutputWorkbook()
         .Range("A1:A3").Font.Bold = True
     End With
 End Sub
+
+' Create Division-based scoping reports showing scoped in/out per division
+Private Sub CreateDivisionScopingReports(scopedPacks As Object)
+    On Error GoTo ErrorHandler
+    
+    ' Create "Scoped In by Division" sheet
+    CreateScopedInByDivision scopedPacks
+    
+    ' Create "Scoped Out by Division" sheet
+    CreateScopedOutByDivision scopedPacks
+    
+    ' Create "Scoped In Packs Detail" sheet with FSLi amounts
+    CreateScopedInPacksDetail scopedPacks
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating division reports: " & Err.Description
+End Sub
+
+' Create "Scoped In by Division" summary
+Private Sub CreateScopedInByDivision(scopedPacks As Object)
+    On Error GoTo ErrorHandler
+    
+    Dim ws As Worksheet
+    Dim inputTab As Worksheet
+    Dim row As Long
+    Dim col As Long
+    Dim lastCol As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim division As String
+    Dim divisionDict As Object
+    Dim divKey As Variant
+    
+    Set divisionDict = CreateObject("Scripting.Dictionary")
+    
+    ' Get input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then Exit Sub
+    
+    ' Collect scoped-in packs by division
+    lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+    For col = 3 To lastCol
+        packCode = Trim(inputTab.Cells(8, col).Value)
+        packName = Trim(inputTab.Cells(7, col).Value)
+        
+        If packCode <> "" And packName <> "" Then
+            ' Check if this pack is scoped in
+            If Not scopedPacks Is Nothing Then
+                If scopedPacks.Exists(packCode) Then
+                    ' Get division from Pack Number Company Table
+                    division = GetPackDivision(packCode)
+                    
+                    If Not divisionDict.Exists(division) Then
+                        Set divisionDict(division) = CreateObject("Scripting.Dictionary")
+                    End If
+                    
+                    If Not divisionDict(division).Exists(packCode) Then
+                        divisionDict(division).Add packCode, packName
+                    End If
+                End If
+            End If
+        End If
+    Next col
+    
+    ' Create worksheet
+    Set ws = g_OutputWorkbook.Worksheets.Add
+    ws.Name = "Scoped In by Division"
+    
+    ' Write headers
+    row = 1
+    With ws
+        .Cells(row, 1).Value = "PACKS SCOPED IN BY DIVISION"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 14
+        .Cells(row, 1).Font.Color = RGB(0, 112, 192)
+        row = row + 2
+        
+        ' Write data by division
+        For Each divKey In divisionDict.Keys
+            .Cells(row, 1).Value = "Division: " & divKey
+            .Cells(row, 1).Font.Bold = True
+            .Cells(row, 1).Interior.Color = RGB(217, 225, 242)
+            row = row + 1
+            
+            .Cells(row, 1).Value = "Pack Code"
+            .Cells(row, 2).Value = "Pack Name"
+            .Cells(row, 1).Font.Bold = True
+            .Cells(row, 2).Font.Bold = True
+            row = row + 1
+            
+            Dim packDict As Object
+            Set packDict = divisionDict(divKey)
+            
+            Dim packKey As Variant
+            For Each packKey In packDict.Keys
+                .Cells(row, 1).Value = packKey
+                .Cells(row, 2).Value = packDict(packKey)
+                row = row + 1
+            Next packKey
+            
+            .Cells(row, 1).Value = "Count: " & packDict.Count
+            .Cells(row, 1).Font.Italic = True
+            row = row + 2
+        Next divKey
+        
+        ' Summary
+        .Cells(row, 1).Value = "TOTAL SCOPED IN: " & IIf(scopedPacks Is Nothing, 0, scopedPacks.Count)
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 12
+        
+        .Columns("A:B").AutoFit
+    End With
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating Scoped In by Division: " & Err.Description
+End Sub
+
+' Create "Scoped Out by Division" summary
+Private Sub CreateScopedOutByDivision(scopedPacks As Object)
+    On Error GoTo ErrorHandler
+    
+    Dim ws As Worksheet
+    Dim inputTab As Worksheet
+    Dim row As Long
+    Dim col As Long
+    Dim lastCol As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim division As String
+    Dim divisionDict As Object
+    Dim divKey As Variant
+    Dim totalPacks As Long
+    
+    Set divisionDict = CreateObject("Scripting.Dictionary")
+    totalPacks = 0
+    
+    ' Get input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then Exit Sub
+    
+    ' Collect scoped-out packs by division
+    lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+    For col = 3 To lastCol
+        packCode = Trim(inputTab.Cells(8, col).Value)
+        packName = Trim(inputTab.Cells(7, col).Value)
+        
+        If packCode <> "" And packName <> "" Then
+            ' Check if this pack is NOT scoped in
+            Dim isScoped As Boolean
+            isScoped = False
+            
+            If Not scopedPacks Is Nothing Then
+                If scopedPacks.Exists(packCode) Then
+                    isScoped = True
+                End If
+            End If
+            
+            If Not isScoped Then
+                totalPacks = totalPacks + 1
+                ' Get division
+                division = GetPackDivision(packCode)
+                
+                If Not divisionDict.Exists(division) Then
+                    Set divisionDict(division) = CreateObject("Scripting.Dictionary")
+                End If
+                
+                If Not divisionDict(division).Exists(packCode) Then
+                    divisionDict(division).Add packCode, packName
+                End If
+            End If
+        End If
+    Next col
+    
+    ' Create worksheet
+    Set ws = g_OutputWorkbook.Worksheets.Add
+    ws.Name = "Scoped Out by Division"
+    
+    ' Write headers
+    row = 1
+    With ws
+        .Cells(row, 1).Value = "PACKS NOT SCOPED IN (BY DIVISION)"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 14
+        .Cells(row, 1).Font.Color = RGB(192, 0, 0)
+        row = row + 2
+        
+        ' Write data by division
+        For Each divKey In divisionDict.Keys
+            .Cells(row, 1).Value = "Division: " & divKey
+            .Cells(row, 1).Font.Bold = True
+            .Cells(row, 1).Interior.Color = RGB(255, 242, 204)
+            row = row + 1
+            
+            .Cells(row, 1).Value = "Pack Code"
+            .Cells(row, 2).Value = "Pack Name"
+            .Cells(row, 1).Font.Bold = True
+            .Cells(row, 2).Font.Bold = True
+            row = row + 1
+            
+            Dim packDict As Object
+            Set packDict = divisionDict(divKey)
+            
+            Dim packKey As Variant
+            For Each packKey In packDict.Keys
+                .Cells(row, 1).Value = packKey
+                .Cells(row, 2).Value = packDict(packKey)
+                row = row + 1
+            Next packKey
+            
+            .Cells(row, 1).Value = "Count: " & packDict.Count
+            .Cells(row, 1).Font.Italic = True
+            row = row + 2
+        Next divKey
+        
+        ' Summary
+        .Cells(row, 1).Value = "TOTAL NOT SCOPED: " & totalPacks
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 12
+        
+        .Columns("A:B").AutoFit
+    End With
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating Scoped Out by Division: " & Err.Description
+End Sub
+
+' Create detailed report of scoped-in packs with FSLi amounts
+Private Sub CreateScopedInPacksDetail(scopedPacks As Object)
+    On Error GoTo ErrorHandler
+    
+    Dim ws As Worksheet
+    Dim inputTab As Worksheet
+    Dim row As Long
+    Dim dataRow As Long
+    Dim col As Long
+    Dim lastCol As Long
+    Dim lastRow As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim fsliName As String
+    Dim amount As Variant
+    Dim packCol As Long
+    
+    ' Get input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then Exit Sub
+    
+    ' Create worksheet
+    Set ws = g_OutputWorkbook.Worksheets.Add
+    ws.Name = "Scoped In Packs Detail"
+    
+    ' Write headers
+    row = 1
+    With ws
+        .Cells(row, 1).Value = "SCOPED IN PACKS - DETAILED FSLi AMOUNTS"
+        .Cells(row, 1).Font.Bold = True
+        .Cells(row, 1).Font.Size = 14
+        .Cells(row, 1).Font.Color = RGB(0, 112, 192)
+        row = row + 2
+        
+        .Cells(row, 1).Value = "Pack Code"
+        .Cells(row, 2).Value = "Pack Name"
+        .Cells(row, 3).Value = "FSLi"
+        .Cells(row, 4).Value = "Amount"
+        .Cells(row, 5).Value = "% of Pack Total"
+        .Range("A" & row & ":E" & row).Font.Bold = True
+        .Range("A" & row & ":E" & row).Interior.Color = RGB(68, 114, 196)
+        .Range("A" & row & ":E" & row).Font.Color = RGB(255, 255, 255)
+        row = row + 1
+        
+        ' Process each scoped-in pack
+        If Not scopedPacks Is Nothing Then
+            lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+            lastRow = inputTab.Cells(inputTab.Rows.Count, 2).End(xlUp).row
+            
+            For col = 3 To lastCol
+                packCode = Trim(inputTab.Cells(8, col).Value)
+                packName = Trim(inputTab.Cells(7, col).Value)
+                
+                If packCode <> "" And packName <> "" Then
+                    If scopedPacks.Exists(packCode) Then
+                        packCol = col
+                        
+                        ' Calculate pack total
+                        Dim packTotal As Double
+                        packTotal = 0
+                        For dataRow = 9 To lastRow
+                            If IsNumeric(inputTab.Cells(dataRow, packCol).Value) Then
+                                packTotal = packTotal + Abs(CDbl(inputTab.Cells(dataRow, packCol).Value))
+                            End If
+                        Next dataRow
+                        
+                        ' Write each FSLi for this pack
+                        For dataRow = 9 To lastRow
+                            fsliName = Trim(inputTab.Cells(dataRow, 2).Value)
+                            amount = inputTab.Cells(dataRow, packCol).Value
+                            
+                            If fsliName <> "" And IsNumeric(amount) Then
+                                .Cells(row, 1).Value = packCode
+                                .Cells(row, 2).Value = packName
+                                .Cells(row, 3).Value = fsliName
+                                .Cells(row, 4).Value = CDbl(amount)
+                                .Cells(row, 4).NumberFormat = "#,##0.00"
+                                
+                                ' Calculate percentage
+                                If packTotal > 0 Then
+                                    .Cells(row, 5).Value = Abs(CDbl(amount)) / packTotal
+                                    .Cells(row, 5).NumberFormat = "0.00%"
+                                End If
+                                
+                                row = row + 1
+                            End If
+                        Next dataRow
+                    End If
+                End If
+            Next col
+        End If
+        
+        ' Auto-fit columns
+        .Columns("A:E").AutoFit
+        
+        ' Add table if data exists
+        If row > 4 Then
+            Dim tbl As ListObject
+            On Error Resume Next
+            Set tbl = .ListObjects.Add(xlSrcRange, .Range(.Cells(3, 1), .Cells(row - 1, 5)), , xlYes)
+            If Not tbl Is Nothing Then
+                tbl.Name = "Scoped_In_Packs_Detail_Table"
+                tbl.TableStyle = "TableStyleMedium2"
+            End If
+            On Error GoTo ErrorHandler
+        End If
+    End With
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "Error creating Scoped In Packs Detail: " & Err.Description
+End Sub
+
+' Helper function to get division for a pack code
+Private Function GetPackDivision(packCode As String) As String
+    On Error Resume Next
+    
+    Dim packWs As Worksheet
+    Dim lastRow As Long
+    Dim row As Long
+    
+    ' Try to find in Pack Number Company Table
+    Set packWs = g_OutputWorkbook.Worksheets("Pack Number Company Table")
+    
+    If Not packWs Is Nothing Then
+        lastRow = packWs.Cells(packWs.Rows.Count, 1).End(xlUp).row
+        
+        For row = 2 To lastRow
+            If Trim(packWs.Cells(row, 2).Value) = packCode Then ' Column 2 is Pack Code
+                GetPackDivision = Trim(packWs.Cells(row, 3).Value) ' Column 3 is Division
+                Exit Function
+            End If
+        Next row
+    End If
+    
+    ' Default division if not found
+    GetPackDivision = "Unknown Division"
+    
+    On Error GoTo 0
+End Function

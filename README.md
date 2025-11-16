@@ -37,7 +37,7 @@ The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comp
 ### 📊 Comprehensive Table Generation
 - **Full Input Table**: Complete view of input continuing operations
 - **Journals Table**: Consolidation journal entries
-- **Console Table**: Consolidated financial data
+- **Consol Table**: Consolidated financial data
 - **Discontinued Table**: Discontinued operations
 - **FSLi Key Table**: Master reference for all FSLi entries with metadata
 - **Pack Company Table**: Entity reference with divisions
@@ -278,7 +278,7 @@ Scoping Analysis
    - Similar to Input tables
    - Data from journals continuing tab
 
-4. **Full Console Table** & **Full Console Percentage**
+4. **Full Consol Table** & **Full Consol Percentage**
    - Consolidated financial data
    - With percentage coverage
 
@@ -368,7 +368,7 @@ Scoping Analysis
 '   - TGK_Discontinued
 '   - TGK_Input_Continuing
 '   - TGK_Journals
-'   - TGK_Console
+'   - TGK_Consol
 '   - Balance_Sheet, Income_Statement
 '   - Pull_Working_1, Pull_Working_2
 '   - Summary (uncategorized)
