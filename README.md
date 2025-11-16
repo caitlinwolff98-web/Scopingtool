@@ -11,12 +11,42 @@ The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comp
 - Automatically categorizing worksheets in consolidation workbooks
 - Dynamically analyzing Financial Statement Line Items (FSLi) hierarchies with intelligent header filtering
 - Extracting entity and pack information across multiple segments
-- **NEW:** Threshold-based automatic scoping with user-configured FSLi selection
-- **NEW:** Interactive Excel dashboard with pivot tables, charts, and calculators
+- **NEW v3.1:** Consolidated entity selection and exclusion from scoping
+- **NEW v3.1:** Dynamic PowerBI scoping with manual pack/FSLi selection
+- **NEW v3.1:** Pack Name + Pack Code columns for proper PowerBI relationships
+- Threshold-based automatic scoping with user-configured FSLi selection
+- Interactive Excel dashboard with pivot tables, charts, and calculators
 - Generating structured tables optimized for Power BI import with standardized naming
-- Calculating percentage coverage for scoping analysis
-- **NEW:** Comprehensive scoping summary with "Suggested for Scope" recommendations
+- Calculating percentage coverage for scoping analysis per FSLi and Division
+- Comprehensive scoping summary with "Suggested for Scope" recommendations
 - Supporting both standalone Excel analysis and Power BI integration
+
+## What's New in v3.1 🆕
+
+### ISA 600 Compliance Enhancements
+- **🎯 Consolidated Entity Selection**: Interactive prompt to select which pack represents the consolidated entity (e.g., BVT-001)
+- **🚫 Automatic Exclusion**: Consolidated entity automatically excluded from all scoping calculations and threshold analysis
+- **✓ Is Consolidated Flag**: Clear identification in Pack Number Company Table
+
+### PowerBI Dynamic Scoping
+- **📊 Scoping Control Table**: New comprehensive table enabling manual scoping status updates in PowerBI
+- **🔄 Live Updates**: Change scoping status in PowerBI and see coverage percentages update in real-time
+- **📈 Per-FSLi Analysis**: Track scoping coverage for each FSLi independently
+- **🏢 Per-Division Analysis**: Monitor scoping coverage by division (only Category 1 segments)
+
+### Improved Data Structure
+- **🔗 Pack Name + Pack Code**: All tables now include both fields for proper PowerBI relationships
+- **📋 Division Logic Update**: Only Category 1 (Segment Tabs) create divisions; other categories marked "Not Categorized"
+- **📝 Enhanced DAX Guide**: Comprehensive DAX measures for dynamic scoping analysis
+
+### Complete Workflow
+```
+Run VBA Macro → Select Consolidated Entity → Optional Threshold Scoping → 
+Generate Tables → Import to PowerBI → Manual Pack/FSLi Scoping → 
+Dynamic Coverage Analysis → Export Results
+```
+
+See **POWERBI_DYNAMIC_SCOPING_GUIDE.md** for complete workflow documentation.
 
 ## Key Features
 
@@ -452,7 +482,64 @@ For questions, issues, or customization:
 
 ## Version History
 
-### v3.0.0 (Current - November 2024)
+### v3.1.0 (Current - November 2024)
+**MAJOR UPDATE - Dynamic PowerBI Scoping & ISA 600 Compliance**
+
+**🎯 New Features:**
+- ✨ **Consolidated Entity Selection**: Interactive prompt to select consolidated pack (e.g., BVT-001)
+  - Automatically excluded from all scoping calculations
+  - Marked with "Is Consolidated = Yes" flag
+  - Prevents double-counting in coverage analysis
+- ✨ **Dynamic PowerBI Scoping**: Complete manual scoping workflow in PowerBI
+  - New Scoping Control Table with Pack Name, Pack Code, Division, FSLi, Amount, Scoping Status
+  - Manual scoping status updates ("Scoped In" / "Not Scoped" / "Scoped Out")
+  - Real-time coverage percentage updates
+  - Per-FSLi and per-Division analysis
+- ✨ **Enhanced Data Structure**: 
+  - All tables now include Pack Name + Pack Code columns
+  - Proper PowerBI relationships using Pack Code
+  - Pack Name available for display in visuals
+- ✨ **Division Logic Update**: 
+  - Only Category 1 (Segment Tabs) create divisions
+  - Other categories marked "Not Categorized"
+  - Aligns with ISA 600 component identification
+- ✨ **Comprehensive DAX Measures**: 
+  - 7 new DAX measures for dynamic scoping
+  - Automatic consolidated entity exclusion
+  - Coverage by FSLi and Division
+  - Updated DAX Measures Guide
+
+**🔧 Bug Fixes & Improvements:**
+- ✅ Fixed Pack Name relationship issues in PowerBI
+- ✅ Consolidated entity now properly excluded from threshold calculations
+- ✅ Division assignment only from Category 1 tabs
+- ✅ Enhanced CreateGenericTable to include Pack Code
+- ✅ Updated Pack Number Company Table with Is Consolidated flag
+
+**📦 Enhanced Modules:**
+- ModMain.bas - Added SelectConsolidatedEntity() function, g_ConsolidatedPackCode variable
+- ModThresholdScoping.bas - Excluded consolidated entity from ApplyThresholdsToData()
+- ModTableGeneration.bas - Updated division logic and added Is Consolidated column
+- ModDataProcessing.bas - Added Pack Code to all data tables
+- ModPowerBIIntegration.bas - New CreateScopingControlTable() function, enhanced DAX guide
+
+**📚 Documentation:**
+- POWERBI_DYNAMIC_SCOPING_GUIDE.md - NEW complete dynamic scoping workflow
+  - VBA macro usage with consolidated selection
+  - PowerBI setup and relationships
+  - DAX measures and visuals
+  - Manual scoping methods (4 approaches)
+  - ISA 600 compliance reporting
+  - Export workflow
+- README.md - Updated with v3.1 features
+- Enhanced DAX Measures Guide in output workbook
+
+**🔄 Migration:**
+- Fully backward compatible with v3.0
+- Existing PowerBI files need to add Scoping Control Table
+- Review POWERBI_DYNAMIC_SCOPING_GUIDE.md for updated workflow
+
+### v3.0.0 (November 2024)
 **MAJOR UPDATE - Autonomous Operation & Division-Based Reporting**
 
 **🎯 New Features:**
@@ -559,8 +646,29 @@ Designed for audit professionals working with TGK consolidation systems. Built t
 
 ---
 
-**Current Version:** 1.1.0  
+**Current Version:** 3.1.0  
 **Last Updated:** November 2024  
+**Platform:** Microsoft Excel with VBA  
+**Integration:** Microsoft Power BI (Optional - Autonomous with Dynamic Scoping)  
+**Output Format:** Bidvest Scoping Tool Output.xlsx (Standardized)
+
+---
+
+## Quick Links
+
+- [What's New in v3.1](POWERBI_DYNAMIC_SCOPING_GUIDE.md) 🆕
+- [Dynamic PowerBI Scoping Guide](POWERBI_DYNAMIC_SCOPING_GUIDE.md)
+- [Complete PowerBI Setup Guide](POWERBI_COMPLETE_SETUP.md)
+- [Complete Documentation](DOCUMENTATION.md)
+- [Installation Guide](INSTALLATION_GUIDE.md)
+- [Usage Examples](USAGE_EXAMPLES.md)
+- [Module Documentation](VBA_Modules/README.md)
+
+---
+
+**Need Help?** Start with the [Quick Start](#quick-start) section above, then refer to the detailed documentation for your specific use case.
+
+**What's New in v3.1?** See [POWERBI_DYNAMIC_SCOPING_GUIDE.md](POWERBI_DYNAMIC_SCOPING_GUIDE.md) for complete workflow and ISA 600 compliance features.  
 **Platform:** Microsoft Excel with VBA  
 **Integration:** Microsoft Power BI
 
