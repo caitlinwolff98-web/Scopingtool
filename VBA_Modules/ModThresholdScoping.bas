@@ -163,16 +163,10 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
     msg = msg & "Available FSLIs:" & vbCrLf
     msg = msg & String(50, "-") & vbCrLf
     
-    ' List up to 30 FSLIs (to keep dialog manageable)
-    For i = 1 To Application.WorksheetFunction.Min(fsliList.Count, 30)
+    ' List all FSLIs
+    For i = 1 To fsliList.Count
         msg = msg & i & ". " & fsliList(i) & vbCrLf
     Next i
-    
-    If fsliList.Count > 30 Then
-        msg = msg & "... (" & (fsliList.Count - 30) & " more FSLIs available)" & vbCrLf
-        msg = msg & vbCrLf & "TIP: Scroll through the list in your input tab (Column B, Row 9+)" & vbCrLf
-        msg = msg & "to see all available FSLIs including Balance Sheet items." & vbCrLf
-    End If
     
     msg = msg & vbCrLf & "Total FSLIs available: " & fsliList.Count & vbCrLf
     msg = msg & vbCrLf & "Enter selection:" & vbCrLf
