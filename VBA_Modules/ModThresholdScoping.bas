@@ -102,7 +102,7 @@ Private Function GetAvailableFSLIs() As Collection
         ' Skip empty, notes, and statement headers
         If fsliName <> "" And _
            UCase(fsliName) <> "NOTES" And _
-           Not IsStatementHeader(fsliName) Then
+           Not ModDataProcessing.IsStatementHeader(fsliName) Then
             
             ' Skip if already in dictionary
             If Not fsliDict.Exists(fsliName) Then
@@ -119,25 +119,6 @@ Private Function GetAvailableFSLIs() As Collection
 ErrorHandler:
     MsgBox "Error getting FSLIs: " & Err.Description, vbCritical
     Set GetAvailableFSLIs = New Collection
-End Function
-
-' Check if a line is a statement header (copied from ModDataProcessing)
-Private Function IsStatementHeader(fsliName As String) As Boolean
-    Dim upperName As String
-    upperName = UCase(Trim(fsliName))
-    
-    IsStatementHeader = False
-    
-    If upperName = "INCOME STATEMENT" Or _
-       upperName = "BALANCE SHEET" Or _
-       upperName = "STATEMENT OF FINANCIAL POSITION" Or _
-       upperName = "STATEMENT OF PROFIT OR LOSS" Or _
-       upperName = "STATEMENT OF COMPREHENSIVE INCOME" Or _
-       upperName = "CASH FLOW STATEMENT" Or _
-       upperName = "STATEMENT OF CASH FLOWS" Or _
-       upperName = "STATEMENT OF CHANGES IN EQUITY" Then
-        IsStatementHeader = True
-    End If
 End Function
 
 ' Prompt user to select FSLIs using a custom dialog
