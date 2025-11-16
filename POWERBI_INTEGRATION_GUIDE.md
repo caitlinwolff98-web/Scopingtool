@@ -59,8 +59,8 @@ In the Navigator window, select the following tables:
 **Optional Tables (if available):**
 - ☑ Journals Table
 - ☑ Journals Percentage
-- ☑ Full Console Table
-- ☑ Full Console Percentage
+- ☑ Full Consol Table
+- ☑ Full Consol Percentage
 - ☑ Discontinued Table
 - ☑ Discontinued Percentage
 
@@ -121,7 +121,7 @@ In the Navigator window, select the following tables:
 
 Repeat Transforms 1-3 for:
 - Journals Table & Journals Percentage
-- Full Console Table & Full Console Percentage
+- Full Consol Table & Full Consol Percentage
 - Discontinued Table & Discontinued Percentage
 
 ### Transform 5: Pack Number Company Table
@@ -182,10 +182,10 @@ No transformation needed - load as-is
 
 Repeat for other table pairs:
 - Pack Number Company → Journals Table
-- Pack Number Company → Full Console Table
+- Pack Number Company → Full Consol Table
 - Pack Number Company → Discontinued Table
 - FSLi Key Table → Journals Table
-- FSLi Key Table → Full Console Table
+- FSLi Key Table → Full Consol Table
 - FSLi Key Table → Discontinued Table
 
 ### Step 3: Verify Model

@@ -137,8 +137,8 @@ A new workbook will be created with the following tables:
 - Full Input Percentage
 - Journals Table
 - Journals Percentage
-- Full Console Table
-- Full Console Percentage
+- Full Consol Table
+- Full Consol Percentage
 - Discontinued Table
 - Discontinued Percentage
 - FSLi Key Table
@@ -354,8 +354,8 @@ Percentage = (Absolute Value of Cell / Sum of Absolute Values in Column) × 100
    - Full Input Percentage
    - Journals Table
    - Journals Percentage
-   - Full Console Table
-   - Full Console Percentage
+   - Full Consol Table
+   - Full Consol Percentage
    - Discontinued Table
    - Discontinued Percentage
    - FSLi Key Table
@@ -367,7 +367,7 @@ Percentage = (Absolute Value of Cell / Sum of Absolute Values in Column) × 100
 ```
 Pack Number Company Table[Pack Name] → Full Input Table[Pack]
 Pack Number Company Table[Pack Name] → Journals Table[Pack]
-Pack Number Company Table[Pack Name] → Full Console Table[Pack]
+Pack Number Company Table[Pack Name] → Full Consol Table[Pack]
 Pack Number Company Table[Pack Name] → Discontinued Table[Pack]
 ```
 

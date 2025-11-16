@@ -65,7 +65,7 @@ Private Sub CreateDashboardLayout(ws As Worksheet)
         row = row + 1
         .Cells(row, 1).Value = "2. Use the Threshold Configuration sheet (if applicable) to see automatic scoping rules"
         row = row + 1
-        .Cells(row, 1).Value = "3. Review the data tables (Full Input, Console, etc.) for detailed analysis"
+        .Cells(row, 1).Value = "3. Review the data tables (Full Input, Consol, etc.) for detailed analysis"
         row = row + 1
         .Cells(row, 1).Value = "4. Use this dashboard for high-level summaries and pivot analysis"
         row = row + 2

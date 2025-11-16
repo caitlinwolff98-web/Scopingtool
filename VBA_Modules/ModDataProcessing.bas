@@ -43,8 +43,8 @@ Public Sub ProcessConsolidationData()
     
     Set consoleTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_CONSOLE_CONTINUING)
     If Not consoleTab Is Nothing Then
-        Application.StatusBar = "Processing Console tab..."
-        ProcessConsoleTab consoleTab
+        Application.StatusBar = "Processing Consol tab..."
+        ProcessConsolTab consoleTab
     End If
     
     ' Create supporting tables
@@ -474,8 +474,8 @@ ErrorHandler:
     MsgBox "Error processing Journals tab: " & Err.Description, vbCritical
 End Sub
 
-' Process Console tab
-Private Sub ProcessConsoleTab(ws As Worksheet)
+' Process Consol tab
+Private Sub ProcessConsolTab(ws As Worksheet)
     On Error GoTo ErrorHandler
     
     Dim columns As Collection
@@ -511,13 +511,13 @@ Private Sub ProcessConsoleTab(ws As Worksheet)
     ' Analyze FSLi structure
     Set fsliList = AnalyzeFSLiStructure(ws, selectedColumnType)
     
-    ' Create Console Table
-    CreateConsoleTable ws, columns, fsliList, selectedColumnType
+    ' Create Consol Table
+    CreateConsolTable ws, columns, fsliList, selectedColumnType
     
     Exit Sub
     
 ErrorHandler:
-    MsgBox "Error processing Console tab: " & Err.Description, vbCritical
+    MsgBox "Error processing Consol tab: " & Err.Description, vbCritical
 End Sub
 
 ' Create Journals Table
@@ -533,17 +533,17 @@ ErrorHandler:
     MsgBox "Error creating Journals Table: " & Err.Description, vbCritical
 End Sub
 
-' Create Console Table
-Private Sub CreateConsoleTable(sourceWs As Worksheet, columns As Collection, _
+' Create Consol Table
+Private Sub CreateConsolTable(sourceWs As Worksheet, columns As Collection, _
                                fsliList As Collection, columnType As String)
     On Error GoTo ErrorHandler
     
-    CreateGenericTable sourceWs, columns, fsliList, columnType, "Full Console Table"
+    CreateGenericTable sourceWs, columns, fsliList, columnType, "Full Consol Table"
     
     Exit Sub
     
 ErrorHandler:
-    MsgBox "Error creating Console Table: " & Err.Description, vbCritical
+    MsgBox "Error creating Consol Table: " & Err.Description, vbCritical
 End Sub
 
 ' Create Discontinued Table

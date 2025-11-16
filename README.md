@@ -37,7 +37,7 @@ The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comp
 ### 📊 Comprehensive Table Generation
 - **Full Input Table**: Complete view of input continuing operations
 - **Journals Table**: Consolidation journal entries
-- **Console Table**: Consolidated financial data
+- **Consol Table**: Consolidated financial data
 - **Discontinued Table**: Discontinued operations
 - **FSLi Key Table**: Master reference for all FSLi entries with metadata
 - **Pack Company Table**: Entity reference with divisions
@@ -137,13 +137,14 @@ The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comp
 
 | Document | Description |
 |----------|-------------|
+| [POWERBI_COMPLETE_SETUP.md](POWERBI_COMPLETE_SETUP.md) | **NEW!** Complete autonomous PowerBI setup with zero manual configuration |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete user guide, technical specs, troubleshooting |
-| [POWERBI_SETUP_COMPLETE.md](POWERBI_SETUP_COMPLETE.md) | **NEW** Comprehensive Power BI setup with DAX measures and relationship fixes |
+| [POWERBI_SETUP_COMPLETE.md](POWERBI_SETUP_COMPLETE.md) | Comprehensive Power BI setup with DAX measures |
 | [POWERBI_INTEGRATION_GUIDE.md](POWERBI_INTEGRATION_GUIDE.md) | Original Power BI integration guide |
 | [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) | Version history, bug fixes, and enhancements |
 | [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) | Detailed installation instructions |
 | [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) | Real-world usage scenarios and examples |
-| [VBA_Modules/README.md](VBA_Modules/README.md) | **UPDATED** Complete module documentation with new features |
+| [VBA_Modules/README.md](VBA_Modules/README.md) | Complete module documentation with new features |
 
 ## Requirements
 
@@ -278,7 +279,7 @@ Scoping Analysis
    - Similar to Input tables
    - Data from journals continuing tab
 
-4. **Full Console Table** & **Full Console Percentage**
+4. **Full Consol Table** & **Full Consol Percentage**
    - Consolidated financial data
    - With percentage coverage
 
@@ -368,7 +369,7 @@ Scoping Analysis
 '   - TGK_Discontinued
 '   - TGK_Input_Continuing
 '   - TGK_Journals
-'   - TGK_Console
+'   - TGK_Consol
 '   - Balance_Sheet, Income_Statement
 '   - Pull_Working_1, Pull_Working_2
 '   - Summary (uncategorized)
@@ -451,7 +452,42 @@ For questions, issues, or customization:
 
 ## Version History
 
-### v2.0.0 (Current - November 2024)
+### v3.0.0 (Current - November 2024)
+**MAJOR UPDATE - Autonomous Operation & Division-Based Reporting**
+
+**🎯 New Features:**
+- ✨ **Division-Based Scoping Reports**: Three new sheets automatically generated
+  - Scoped In by Division - Complete division breakdown
+  - Scoped Out by Division - Coverage gap identification
+  - Scoped In Packs Detail - FSLi-level amounts per pack
+- ✨ **Text-Based FSLi Selection**: Select FSLis by name (e.g., "Total Assets")
+- ✨ **Professional Excel Output**: Enhanced Control Panel with instructions
+- ✨ **Comprehensive PowerBI Guide**: Single unified setup document (POWERBI_COMPLETE_SETUP.md)
+- ✨ **Autonomous Workflow**: Users run VBA, PowerBI auto-refreshes
+
+**🔧 Bug Fixes & Improvements:**
+- ✅ Fixed "Console" to "Consol" terminology throughout VBA and documentation
+- ✅ Enhanced FSLi selection with text matching and partial match support
+- ✅ Better error messages for Balance Sheet FSLi selection
+- ✅ Improved Pack Code relationship documentation
+- ✅ Professional formatting with color coding and borders
+
+**📦 Enhanced Modules:**
+- ModMain.bas - Added division-based reporting functions
+- ModThresholdScoping.bas - Text-based FSLi selection
+- ModMain.bas - Professional Control Panel formatting
+
+**📚 Documentation:**
+- POWERBI_COMPLETE_SETUP.md - NEW comprehensive autonomous workflow guide
+- WHATS_NEW_V3.md - Complete v3.0 release notes
+- All documentation updated with "Consol" terminology
+
+**🔄 Migration:**
+- Backward compatible with v2.0
+- Existing PowerBI files need table name updates (Console → Consol)
+- See WHATS_NEW_V3.md for migration guide
+
+### v2.0.0 (November 2024)
 **MAJOR UPDATE - Comprehensive Enhancement Release**
 
 **🎯 New Features:**
@@ -539,19 +575,20 @@ Designed for audit professionals working with TGK consolidation systems. Built t
 
 ---
 
-**Current Version:** 2.0.0  
+**Current Version:** 3.0.0  
 **Last Updated:** November 2024  
 **Platform:** Microsoft Excel with VBA  
-**Integration:** Microsoft Power BI (Optional)  
+**Integration:** Microsoft Power BI (Optional - Autonomous)  
 **Output Format:** Bidvest Scoping Tool Output.xlsx (Standardized)
 
 ---
 
 ## Quick Links
 
+- [What's New in v3.0](WHATS_NEW_V3.md) 🆕
+- [Complete PowerBI Setup Guide (NEW!)](POWERBI_COMPLETE_SETUP.md)
 - [Complete Documentation](DOCUMENTATION.md)
-- [Power BI Setup Guide (NEW!)](POWERBI_SETUP_COMPLETE.md)
-- [Power BI Integration Guide](POWERBI_INTEGRATION_GUIDE.md)
+- [Power BI Setup Guide](POWERBI_SETUP_COMPLETE.md)
 - [Installation Guide](INSTALLATION_GUIDE.md)
 - [Usage Examples](USAGE_EXAMPLES.md)
 - [Module Documentation](VBA_Modules/README.md)
@@ -560,4 +597,4 @@ Designed for audit professionals working with TGK consolidation systems. Built t
 
 **Need Help?** Start with the [Quick Start](#quick-start) section above, then refer to the detailed documentation for your specific use case.
 
-**What's New in v2.0?** See [Version History](#version-history) for complete feature list and improvements.
+**What's New in v3.0?** See [WHATS_NEW_V3.md](WHATS_NEW_V3.md) for complete feature list and improvements.
