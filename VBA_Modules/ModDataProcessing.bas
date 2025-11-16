@@ -594,9 +594,10 @@ Private Sub CreateGenericTable(sourceWs As Worksheet, columns As Collection, _
     Next i
     
     ' Write headers
-    outputWs.Cells(1, 1).Value = "Pack"
+    outputWs.Cells(1, 1).Value = "Pack Name"
+    outputWs.Cells(1, 2).Value = "Pack Code"
     
-    outCol = 2
+    outCol = 3
     For i = 1 To fsliList.count
         Set fsliInfo = fsliList(i)
         outputWs.Cells(1, outCol).Value = fsliInfo("FSLiName")
@@ -609,8 +610,20 @@ Private Sub CreateGenericTable(sourceWs As Worksheet, columns As Collection, _
         packName = packList(i)
         outputWs.Cells(outRow, 1).Value = packName
         
+        ' Find and add pack code
+        Dim packCode As String
+        packCode = ""
+        For j = 1 To columns.count
+            Set colInfo = columns(j)
+            If colInfo("PackName") = packName And colInfo("ColumnType") = columnType Then
+                packCode = colInfo("PackCode")
+                Exit For
+            End If
+        Next j
+        outputWs.Cells(outRow, 2).Value = packCode
+        
         ' For each FSLi, find the value
-        outCol = 2
+        outCol = 3
         For j = 1 To fsliList.count
             Set fsliInfo = fsliList(j)
             

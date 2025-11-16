@@ -12,6 +12,8 @@ Option Explicit
 Public g_SourceWorkbook As Workbook
 Public g_OutputWorkbook As Workbook
 Public g_TabCategories As Object ' Dictionary for tab categorization
+Public g_ConsolidatedPackCode As String ' Pack code for consolidated entity (excluded from scoping)
+Public g_ConsolidatedPackName As String ' Pack name for consolidated entity
 
 ' Main entry point - called when user clicks the button
 Public Sub StartScopingTool()
@@ -63,6 +65,12 @@ Public Sub StartScopingTool()
     ' Step 5: Validate required categories
     If Not ValidateCategories() Then
         MsgBox "Required tabs are missing. Please ensure all mandatory categories are assigned.", vbCritical
+        Exit Sub
+    End If
+    
+    ' Step 5a: Select consolidated entity (to exclude from scoping)
+    If Not SelectConsolidatedEntity() Then
+        MsgBox "Consolidated entity selection was cancelled. Process terminated.", vbInformation
         Exit Sub
     End If
     
@@ -822,4 +830,128 @@ Private Function GetPackDivision(packCode As String) As String
     GetPackDivision = "Unknown Division"
     
     On Error GoTo 0
+End Function
+
+' Select the consolidated entity (to exclude from scoping)
+Private Function SelectConsolidatedEntity() As Boolean
+    On Error GoTo ErrorHandler
+    
+    Dim inputTab As Worksheet
+    Dim col As Long
+    Dim lastCol As Long
+    Dim packCode As String
+    Dim packName As String
+    Dim packList As String
+    Dim packDict As Object
+    Dim packKey As Variant
+    Dim userInput As String
+    Dim selectedIndex As Long
+    Dim counter As Long
+    
+    ' Initialize
+    g_ConsolidatedPackCode = ""
+    g_ConsolidatedPackName = ""
+    
+    ' Get the input tab
+    Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
+    If inputTab Is Nothing Then
+        SelectConsolidatedEntity = True ' Continue without consolidated selection
+        Exit Function
+    End If
+    
+    ' Create dictionary to store unique packs
+    Set packDict = CreateObject("Scripting.Dictionary")
+    
+    ' Collect all packs from input tab
+    lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
+    counter = 0
+    
+    For col = 3 To lastCol
+        packCode = Trim(inputTab.Cells(8, col).Value)
+        packName = Trim(inputTab.Cells(7, col).Value)
+        
+        If packCode <> "" And packName <> "" Then
+            If Not packDict.Exists(packCode) Then
+                counter = counter + 1
+                packDict.Add packCode, Array(packName, counter)
+            End If
+        End If
+    Next col
+    
+    If packDict.Count = 0 Then
+        SelectConsolidatedEntity = True ' No packs found, continue
+        Exit Function
+    End If
+    
+    ' Build message with pack list
+    packList = "CONSOLIDATED ENTITY SELECTION" & vbCrLf & vbCrLf
+    packList = packList & "Select which pack represents the CONSOLIDATED entity." & vbCrLf
+    packList = packList & "This pack will be EXCLUDED from scoping calculations" & vbCrLf
+    packList = packList & "as it represents consolidated totals, not individual entities." & vbCrLf & vbCrLf
+    packList = packList & "Available Packs:" & vbCrLf
+    packList = packList & String(60, "-") & vbCrLf
+    
+    ' List all packs with numbers
+    For Each packKey In packDict.Keys
+        Dim packInfo As Variant
+        packInfo = packDict(packKey)
+        packList = packList & packInfo(1) & ". " & packInfo(0) & " (" & packKey & ")" & vbCrLf
+    Next packKey
+    
+    packList = packList & vbCrLf & "Enter the number of the consolidated pack:"
+    packList = packList & vbCrLf & "(Or leave blank to include all packs in scoping)"
+    
+    ' Get user input
+    userInput = InputBox(packList, "Select Consolidated Entity", "")
+    
+    ' Parse user input
+    If Trim(userInput) = "" Then
+        ' User chose to include all packs
+        SelectConsolidatedEntity = True
+        Exit Function
+    End If
+    
+    ' Validate input is a number
+    If Not IsNumeric(userInput) Then
+        MsgBox "Invalid input. Please enter a number from the list.", vbExclamation
+        SelectConsolidatedEntity = SelectConsolidatedEntity() ' Recursive call to try again
+        Exit Function
+    End If
+    
+    selectedIndex = CLng(userInput)
+    
+    ' Find the selected pack
+    For Each packKey In packDict.Keys
+        packInfo = packDict(packKey)
+        If packInfo(1) = selectedIndex Then
+            g_ConsolidatedPackCode = CStr(packKey)
+            g_ConsolidatedPackName = packInfo(0)
+            
+            ' Confirm selection
+            Dim confirmMsg As String
+            confirmMsg = "You selected:" & vbCrLf & vbCrLf
+            confirmMsg = confirmMsg & "Pack Name: " & g_ConsolidatedPackName & vbCrLf
+            confirmMsg = confirmMsg & "Pack Code: " & g_ConsolidatedPackCode & vbCrLf & vbCrLf
+            confirmMsg = confirmMsg & "This pack will be EXCLUDED from scoping." & vbCrLf & vbCrLf
+            confirmMsg = confirmMsg & "Is this correct?"
+            
+            If MsgBox(confirmMsg, vbYesNo + vbQuestion, "Confirm Selection") = vbYes Then
+                SelectConsolidatedEntity = True
+                Exit Function
+            Else
+                ' User wants to reselect
+                SelectConsolidatedEntity = SelectConsolidatedEntity() ' Recursive call
+                Exit Function
+            End If
+        End If
+    Next packKey
+    
+    ' If we get here, invalid selection
+    MsgBox "Invalid selection. Please enter a number from 1 to " & packDict.Count, vbExclamation
+    SelectConsolidatedEntity = SelectConsolidatedEntity() ' Recursive call to try again
+    Exit Function
+    
+ErrorHandler:
+    MsgBox "Error selecting consolidated entity: " & Err.Description, vbCritical
+    SelectConsolidatedEntity = False
 End Function

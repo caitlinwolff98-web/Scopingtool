@@ -240,7 +240,7 @@ Public Sub CreatePackNumberCompanyTable()
                     Set packInfo = CreateObject("Scripting.Dictionary")
                     packInfo("Name") = packName
                     packInfo("Code") = packCode
-                    packInfo("Division") = "Continuing Operations"
+                    packInfo("Division") = "Not Categorized" ' Not a division - only segment tabs are divisions
                     packDict.Add packKey, packInfo
                 End If
             End If
@@ -260,7 +260,7 @@ Public Sub CreatePackNumberCompanyTable()
                     Set packInfo = CreateObject("Scripting.Dictionary")
                     packInfo("Name") = packName
                     packInfo("Code") = packCode
-                    packInfo("Division") = "Journals"
+                    packInfo("Division") = "Not Categorized" ' Not a division - only segment tabs are divisions
                     packDict.Add packKey, packInfo
                 End If
             End If
@@ -280,7 +280,7 @@ Public Sub CreatePackNumberCompanyTable()
                     Set packInfo = CreateObject("Scripting.Dictionary")
                     packInfo("Name") = packName
                     packInfo("Code") = packCode
-                    packInfo("Division") = "Consolidated"
+                    packInfo("Division") = "Not Categorized" ' Not a division - only segment tabs are divisions
                     packDict.Add packKey, packInfo
                 End If
             End If
@@ -318,6 +318,7 @@ Public Sub CreatePackNumberCompanyTable()
     outputWs.Cells(1, 1).Value = "Pack Name"
     outputWs.Cells(1, 2).Value = "Pack Code"
     outputWs.Cells(1, 3).Value = "Division"
+    outputWs.Cells(1, 4).Value = "Is Consolidated"
     
     ' Write data
     row = 2
@@ -327,6 +328,14 @@ Public Sub CreatePackNumberCompanyTable()
         outputWs.Cells(row, 1).Value = packInfo("Name")
         outputWs.Cells(row, 2).Value = packInfo("Code")
         outputWs.Cells(row, 3).Value = packInfo("Division")
+        
+        ' Mark if this is the consolidated pack
+        If packInfo("Code") = g_ConsolidatedPackCode Then
+            outputWs.Cells(row, 4).Value = "Yes"
+        Else
+            outputWs.Cells(row, 4).Value = "No"
+        End If
+        
         row = row + 1
     Next key
     
@@ -336,7 +345,7 @@ Public Sub CreatePackNumberCompanyTable()
     ' Create actual Excel Table
     If lastRow > 1 Then
         On Error Resume Next
-        Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, 3)), , xlYes)
+        Set tbl = outputWs.ListObjects.Add(xlSrcRange, outputWs.Range(outputWs.Cells(1, 1), outputWs.Cells(lastRow, 4)), , xlYes)
         If Not tbl Is Nothing Then
             tbl.Name = "Pack_Number_Company_Table"
             tbl.TableStyle = "TableStyleMedium2"
