@@ -372,12 +372,82 @@ Private Sub CreateOutputWorkbook()
     Set g_OutputWorkbook = Workbooks.Add
     g_OutputWorkbook.Worksheets(1).Name = "Control Panel"
     
-    ' Add informational sheet
+    ' Add professional informational sheet
     With g_OutputWorkbook.Worksheets("Control Panel")
-        .Range("A1").Value = "TGK Scoping Tool - Output Tables"
-        .Range("A2").Value = "Source: " & g_SourceWorkbook.Name
-        .Range("A3").Value = "Generated: " & Now()
-        .Range("A1:A3").Font.Bold = True
+        ' Title
+        .Range("A1").Value = "BIDVEST SCOPING TOOL - OUTPUT WORKBOOK"
+        .Range("A1").Font.Bold = True
+        .Range("A1").Font.Size = 16
+        .Range("A1").Font.Color = RGB(0, 112, 192)
+        
+        ' Subtitle
+        .Range("A3").Value = "Generated Data Tables for Audit Scoping Analysis"
+        .Range("A3").Font.Size = 12
+        .Range("A3").Font.Italic = True
+        
+        ' Information section
+        .Range("A5").Value = "Source Information:"
+        .Range("A5").Font.Bold = True
+        .Range("A5").Font.Size = 11
+        
+        .Range("A6").Value = "Source Workbook:"
+        .Range("B6").Value = g_SourceWorkbook.Name
+        .Range("A7").Value = "Source Path:"
+        .Range("B7").Value = g_SourceWorkbook.Path
+        .Range("A8").Value = "Generated Date/Time:"
+        .Range("B8").Value = Now()
+        .Range("B8").NumberFormat = "yyyy-mm-dd hh:mm:ss"
+        .Range("A9").Value = "Tool Version:"
+        .Range("B9").Value = ModConfig.GetToolVersion()
+        
+        ' Usage instructions
+        .Range("A11").Value = "How to Use This Workbook:"
+        .Range("A11").Font.Bold = True
+        .Range("A11").Font.Size = 11
+        .Range("A11").Interior.Color = RGB(217, 225, 242)
+        
+        .Range("A12").Value = "1. Review 'Scoping Summary' sheet for pack-level recommendations"
+        .Range("A13").Value = "2. Check 'Scoped In by Division' and 'Scoped Out by Division' for division analysis"
+        .Range("A14").Value = "3. Use 'Scoped In Packs Detail' to see FSLi-level amounts for scoped packs"
+        .Range("A15").Value = "4. Review 'Threshold Configuration' if threshold-based scoping was applied"
+        .Range("A16").Value = "5. For PowerBI integration, see POWERBI_COMPLETE_SETUP.md"
+        
+        ' Generated sheets list
+        .Range("A18").Value = "Generated Sheets:"
+        .Range("A18").Font.Bold = True
+        .Range("A18").Font.Size = 11
+        .Range("A18").Interior.Color = RGB(217, 225, 242)
+        
+        Dim sheetRow As Long
+        sheetRow = 19
+        .Range("A" & sheetRow).Value = "✓ Full Input Table (primary data)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Scoping Summary (recommendations)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Scoped In by Division (division breakdown)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Scoped Out by Division (coverage gaps)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Scoped In Packs Detail (FSLi amounts)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ FSLi Key Table (FSLi reference)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Pack Number Company Table (pack reference)"
+        sheetRow = sheetRow + 1
+        .Range("A" & sheetRow).Value = "✓ Additional data tables as applicable"
+        
+        ' Format columns
+        .Columns("A:B").AutoFit
+        .Columns("A").ColumnWidth = 30
+        .Columns("B").ColumnWidth = 50
+        
+        ' Add borders
+        .Range("A6:B9").Borders.LineStyle = xlContinuous
+        .Range("A6:B9").Borders.Weight = xlThin
+        
+        ' Color coding
+        .Range("A6:A9").Interior.Color = RGB(242, 242, 242)
+        .Range("A6:A9").Font.Bold = True
     End With
 End Sub
 

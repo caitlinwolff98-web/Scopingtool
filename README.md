@@ -137,13 +137,14 @@ The **Bidvest Scoping Tool** (formerly TGK Consolidation Scoping Tool) is a comp
 
 | Document | Description |
 |----------|-------------|
+| [POWERBI_COMPLETE_SETUP.md](POWERBI_COMPLETE_SETUP.md) | **NEW!** Complete autonomous PowerBI setup with zero manual configuration |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete user guide, technical specs, troubleshooting |
-| [POWERBI_SETUP_COMPLETE.md](POWERBI_SETUP_COMPLETE.md) | **NEW** Comprehensive Power BI setup with DAX measures and relationship fixes |
+| [POWERBI_SETUP_COMPLETE.md](POWERBI_SETUP_COMPLETE.md) | Comprehensive Power BI setup with DAX measures |
 | [POWERBI_INTEGRATION_GUIDE.md](POWERBI_INTEGRATION_GUIDE.md) | Original Power BI integration guide |
 | [CODE_IMPROVEMENTS.md](CODE_IMPROVEMENTS.md) | Version history, bug fixes, and enhancements |
 | [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) | Detailed installation instructions |
 | [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) | Real-world usage scenarios and examples |
-| [VBA_Modules/README.md](VBA_Modules/README.md) | **UPDATED** Complete module documentation with new features |
+| [VBA_Modules/README.md](VBA_Modules/README.md) | Complete module documentation with new features |
 
 ## Requirements
 
