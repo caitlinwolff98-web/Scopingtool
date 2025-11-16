@@ -28,7 +28,13 @@ Public Function ConfigureAndApplyThresholds() As Collection
     Set fsliList = GetAvailableFSLIs()
     
     If fsliList.Count = 0 Then
-        MsgBox "No FSLIs found for threshold configuration.", vbExclamation
+        MsgBox "No FSLIs found for threshold configuration." & vbCrLf & vbCrLf & _
+               "This may indicate:" & vbCrLf & _
+               "1. The Input Continuing Operations tab was not found" & vbCrLf & _
+               "2. All FSLIs were filtered out as statement headers" & vbCrLf & _
+               "3. The data starts at a different row than expected (Row 9)" & vbCrLf & vbCrLf & _
+               "Please verify your consolidation workbook structure.", _
+               vbExclamation, "No FSLIs Available"
         Set ConfigureAndApplyThresholds = New Collection
         Exit Function
     End If
@@ -151,6 +157,9 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
     msg = msg & "Select FSLIs for automatic threshold-based scoping." & vbCrLf
     msg = msg & "Enter the numbers of FSLIs you want to apply thresholds to," & vbCrLf
     msg = msg & "separated by commas (e.g., 1,3,5)" & vbCrLf & vbCrLf
+    msg = msg & "NOTE: You can select Balance Sheet items like 'Total Assets'" & vbCrLf
+    msg = msg & "or Income Statement items like 'Revenue'. The list below" & vbCrLf
+    msg = msg & "excludes only statement headers (e.g., 'BALANCE SHEET')." & vbCrLf & vbCrLf
     msg = msg & "Available FSLIs:" & vbCrLf
     msg = msg & String(50, "-") & vbCrLf
     
@@ -161,9 +170,15 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
     
     If fsliList.Count > 30 Then
         msg = msg & "... (" & (fsliList.Count - 30) & " more FSLIs available)" & vbCrLf
+        msg = msg & vbCrLf & "TIP: Scroll through the list in your input tab (Column B, Row 9+)" & vbCrLf
+        msg = msg & "to see all available FSLIs including Balance Sheet items." & vbCrLf
     End If
     
-    msg = msg & vbCrLf & "Enter selection (or leave blank to skip):"
+    msg = msg & vbCrLf & "Total FSLIs available: " & fsliList.Count & vbCrLf
+    msg = msg & vbCrLf & "Enter selection:" & vbCrLf
+    msg = msg & "• Numbers (e.g., 1,3,5) OR" & vbCrLf
+    msg = msg & "• FSLi names (e.g., Total Assets, Revenue)" & vbCrLf
+    msg = msg & "• Leave blank to skip" & vbCrLf
     
     ' Get user input
     userInput = InputBox(msg, "Select FSLIs for Threshold Scoping", "")
@@ -180,11 +195,47 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
     ' Validate and add selected FSLIs
     For Each index In selectedIndices
         Dim idx As Long
-        idx = Val(Trim(CStr(index)))
+        Dim trimmedInput As String
+        trimmedInput = Trim(CStr(index))
         
-        If idx >= 1 And idx <= fsliList.Count Then
-            fsliName = fsliList(idx)
-            selectedFSLis.Add fsliName
+        ' Check if it's a number or a name
+        If IsNumeric(trimmedInput) Then
+            ' It's a number - use index
+            idx = Val(trimmedInput)
+            
+            If idx >= 1 And idx <= fsliList.Count Then
+                fsliName = fsliList(idx)
+                selectedFSLis.Add fsliName
+            End If
+        Else
+            ' It's a name - search for it in the list
+            Dim foundMatch As Boolean
+            foundMatch = False
+            
+            For i = 1 To fsliList.Count
+                If UCase(Trim(fsliList(i))) = UCase(trimmedInput) Then
+                    selectedFSLis.Add fsliList(i)
+                    foundMatch = True
+                    Exit For
+                End If
+            Next i
+            
+            ' If no exact match, try partial match
+            If Not foundMatch Then
+                For i = 1 To fsliList.Count
+                    If InStr(1, UCase(fsliList(i)), UCase(trimmedInput), vbTextCompare) > 0 Then
+                        ' Show confirmation dialog for partial matches
+                        Dim confirmResult As VbMsgBoxResult
+                        confirmResult = MsgBox("Did you mean: " & fsliList(i) & "?", _
+                                              vbYesNo + vbQuestion, "Confirm FSLi Selection")
+                        
+                        If confirmResult = vbYes Then
+                            selectedFSLis.Add fsliList(i)
+                            Exit For
+                        End If
+                    End If
+                Next i
+            End If
         End If
     Next index
     
