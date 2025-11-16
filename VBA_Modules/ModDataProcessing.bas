@@ -302,7 +302,7 @@ Private Function DetectIndentationLevel(ws As Worksheet, row As Long, col As Lon
 End Function
 
 ' Check if a line is a statement header (not an actual FSLI)
-Private Function IsStatementHeader(fsliName As String) As Boolean
+Public Function IsStatementHeader(fsliName As String) As Boolean
     Dim upperName As String
     upperName = UCase(Trim(fsliName))
     
