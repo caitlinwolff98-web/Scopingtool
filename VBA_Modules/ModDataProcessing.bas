@@ -305,10 +305,10 @@ End Function
 Public Function IsStatementHeader(fsliName As String) As Boolean
     Dim upperName As String
     upperName = UCase(Trim(fsliName))
-    
+
     ' Common statement headers to exclude
     IsStatementHeader = False
-    
+
     ' Exact matches for statement headers
     If upperName = "INCOME STATEMENT" Or _
        upperName = "BALANCE SHEET" Or _
@@ -317,16 +317,26 @@ Public Function IsStatementHeader(fsliName As String) As Boolean
        upperName = "STATEMENT OF COMPREHENSIVE INCOME" Or _
        upperName = "CASH FLOW STATEMENT" Or _
        upperName = "STATEMENT OF CASH FLOWS" Or _
-       upperName = "STATEMENT OF CHANGES IN EQUITY" Then
+       upperName = "STATEMENT OF CHANGES IN EQUITY" Or _
+       upperName = "ASSETS" Or _
+       upperName = "NON-CURRENT ASSETS" Or _
+       upperName = "CURRENT ASSETS" Or _
+       upperName = "EQUITY AND LIABILITIES" Or _
+       upperName = "LIABILITIES" Or _
+       upperName = "NON-CURRENT LIABILITIES" Or _
+       upperName = "CURRENT LIABILITIES" Or _
+       upperName = "CAPITAL AND RESERVES" Or _
+       upperName = "NOTE" Or _
+       upperName = "NOTES" Then
         IsStatementHeader = True
         Exit Function
     End If
-    
+
     ' Check if it's a pure header without additional detail
     ' (e.g., "INCOME STATEMENT" yes, "INCOME STATEMENT - Revenue" no)
     If Len(upperName) < 50 Then ' Headers are typically short
         ' Check for statement indicators without line item details
-        If (upperName = "INCOME STATEMENT" Or upperName = "BALANCE SHEET") And _
+        If (upperName = "INCOME STATEMENT" Or upperName = "BALANCE SHEET" Or upperName = "ASSETS") And _
            InStr(upperName, "-") = 0 And _
            InStr(upperName, ":") = 0 And _
            InStr(upperName, "TOTAL") = 0 Then

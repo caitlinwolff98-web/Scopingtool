@@ -723,14 +723,20 @@ Public Sub CreateScopingControlTable()
                 ' Iterate through each FSLI (row)
                 For dataRow = 9 To lastRow
                     fsliName = Trim(inputTab.Cells(dataRow, 2).Value)
+
+                    ' CRITICAL FIX: Stop processing when we hit "NOTES" - everything after is notes section
+                    If UCase(fsliName) = "NOTES" Then
+                        Exit For ' Stop processing FSLIs for this pack - we've reached the notes section
+                    End If
+
                     amount = inputTab.Cells(dataRow, col).Value
 
-                    ' Only include rows with FSLI names (exclude statement headers)
+                    ' Only include rows with FSLI names (exclude statement headers and empty rows)
                     If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
                         .Cells(row, 1).Value = packInfo("Name") ' Use name from Pack Number Company Table
                         .Cells(row, 2).Value = packCode
                         .Cells(row, 3).Value = division
-                        .Cells(row, 4).Value = fsliName
+                        .Cells(row, 4).Value = CleanFSLINameForOutput(fsliName) ' Use cleaned FSLI name
 
                         If IsNumeric(amount) Then
                             .Cells(row, 5).Value = CDbl(amount)
@@ -797,6 +803,50 @@ Private Function GetPackDivisionFromTable(packCode As String) As String
     
     ' Default if not found
     GetPackDivisionFromTable = "Unknown"
-    
+
     On Error GoTo 0
+End Function
+
+' Clean FSLI name for output - remove brackets, note references, and improve formatting
+Private Function CleanFSLINameForOutput(fsliName As String) As String
+    Dim cleanName As String
+    Dim parenPos As Long
+    Dim tabPos As Long
+
+    cleanName = Trim(fsliName)
+
+    ' Remove tab characters and note references (e.g., "Revenue	1.1" becomes "Revenue")
+    tabPos = InStr(cleanName, vbTab)
+    If tabPos > 0 Then
+        cleanName = Trim(Left(cleanName, tabPos - 1))
+    End If
+
+    ' Remove content in parentheses (e.g., "(Total)", "(Subtotal)", "(IFRS15 customer contracts)")
+    Do
+        parenPos = InStr(cleanName, "(")
+        If parenPos > 0 Then
+            Dim closeParen As Long
+            closeParen = InStr(parenPos, cleanName, ")")
+            If closeParen > 0 Then
+                ' Remove the parentheses and content
+                cleanName = Trim(Left(cleanName, parenPos - 1)) & " " & Trim(Mid(cleanName, closeParen + 1))
+            Else
+                Exit Do ' No matching close paren, stop
+            End If
+        End If
+    Loop While parenPos > 0
+
+    ' Remove extra spaces
+    Do While InStr(cleanName, "  ") > 0
+        cleanName = Replace(cleanName, "  ", " ")
+    Loop
+
+    ' Remove leading/trailing dashes and spaces
+    cleanName = Trim(cleanName)
+    If Len(cleanName) > 0 Then
+        If Left(cleanName, 1) = "-" Then cleanName = Trim(Mid(cleanName, 2))
+        If Len(cleanName) > 0 And Right(cleanName, 1) = "-" Then cleanName = Trim(Left(cleanName, Len(cleanName) - 1))
+    End If
+
+    CleanFSLINameForOutput = Trim(cleanName)
 End Function

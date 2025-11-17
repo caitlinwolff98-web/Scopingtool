@@ -98,12 +98,15 @@ Private Function GetAvailableFSLIs() As Collection
     ' Collect unique FSLIs (excluding headers and totals for threshold selection)
     For row = 9 To lastRow
         fsliName = Trim(inputTab.Cells(row, 2).Value)
-        
-        ' Skip empty, notes, and statement headers
-        If fsliName <> "" And _
-           UCase(fsliName) <> "NOTES" And _
-           Not ModDataProcessing.IsStatementHeader(fsliName) Then
-            
+
+        ' CRITICAL FIX: Stop processing when we hit "NOTES" - everything after is notes section
+        If UCase(fsliName) = "NOTES" Then
+            Exit For ' Stop processing FSLIs - we've reached the notes section
+        End If
+
+        ' Skip empty rows and statement headers
+        If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
+
             ' Skip if already in dictionary
             If Not fsliDict.Exists(fsliName) Then
                 ' Add to dictionary and collection

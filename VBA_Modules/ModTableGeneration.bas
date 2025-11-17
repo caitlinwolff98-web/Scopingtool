@@ -109,15 +109,22 @@ Private Function CollectAllFSLiNames() As Collection
     If Not inputTab Is Nothing Then
         ' Analyze FSLi structure from input tab
         lastRow = inputTab.Cells(inputTab.Rows.count, 2).End(xlUp).row
-        
+
         For row = 9 To lastRow
             fsliName = Trim(inputTab.Cells(row, 2).Value)
-            
-            If fsliName <> "" And UCase(fsliName) <> "NOTES" Then
+
+            ' CRITICAL FIX: Stop processing when we hit "NOTES" - everything after is notes section
+            If UCase(fsliName) = "NOTES" Then
+                Exit For ' Stop processing FSLIs - we've reached the notes section
+            End If
+
+            If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
                 If Not fsliDict.Exists(fsliName) Then
                     Set fsliInfo = CreateObject("Scripting.Dictionary")
-                    fsliInfo("FSLiName") = fsliName
-                    
+
+                    ' Clean FSLI name - remove brackets and note references
+                    fsliInfo("FSLiName") = CleanFSLIName(fsliName)
+
                     ' Detect statement type
                     If InStr(1, fsliName, "income statement", vbTextCompare) > 0 Then
                         fsliInfo("StatementType") = "Income Statement"
@@ -126,20 +133,25 @@ Private Function CollectAllFSLiNames() As Collection
                     Else
                         fsliInfo("StatementType") = ""
                     End If
-                    
-                    ' Detect if it's a total
+
+                    ' Detect if it's a total or subtotal
                     fsliInfo("IsTotal") = (InStr(1, fsliName, "total", vbTextCompare) > 0)
-                    
-                    ' Detect level
+
+                    ' Detect level (indentation)
                     On Error Resume Next
                     fsliInfo("Level") = inputTab.Cells(row, 2).IndentLevel
                     If Err.Number <> 0 Then
                         fsliInfo("Level") = 0
                     End If
                     On Error GoTo 0
-                    
-                    fsliDict.Add fsliName, fsliInfo
-                    resultCollection.Add fsliInfo
+
+                    ' Use cleaned name as key
+                    Dim cleanKey As String
+                    cleanKey = CleanFSLIName(fsliName)
+                    If Not fsliDict.Exists(cleanKey) Then
+                        fsliDict.Add cleanKey, fsliInfo
+                        resultCollection.Add fsliInfo
+                    End If
                 End If
             End If
         Next row
@@ -152,13 +164,55 @@ End Function
 Private Function RemoveMetadataTags(fsliName As String) As String
     Dim cleanName As String
     cleanName = fsliName
-    
+
     ' Remove common tags
     cleanName = Replace(cleanName, " (Total)", "")
     cleanName = Replace(cleanName, " (Subtotal)", "")
     cleanName = Trim(cleanName)
-    
+
     RemoveMetadataTags = cleanName
+End Function
+
+' Clean FSLI name - remove brackets, note references, and improve formatting
+Private Function CleanFSLIName(fsliName As String) As String
+    Dim cleanName As String
+    Dim parenPos As Long
+    Dim tabPos As Long
+
+    cleanName = Trim(fsliName)
+
+    ' Remove tab characters and note references (e.g., "Revenue	1.1" becomes "Revenue")
+    tabPos = InStr(cleanName, vbTab)
+    If tabPos > 0 Then
+        cleanName = Trim(Left(cleanName, tabPos - 1))
+    End If
+
+    ' Remove content in parentheses (e.g., "(Total)", "(Subtotal)", "(IFRS15 customer contracts)")
+    Do
+        parenPos = InStr(cleanName, "(")
+        If parenPos > 0 Then
+            Dim closeParen As Long
+            closeParen = InStr(parenPos, cleanName, ")")
+            If closeParen > 0 Then
+                ' Remove the parentheses and content, but preserve spacing
+                cleanName = Trim(Left(cleanName, parenPos - 1)) & " " & Trim(Mid(cleanName, closeParen + 1))
+            Else
+                Exit Do ' No matching close paren, stop
+            End If
+        End If
+    Loop While parenPos > 0
+
+    ' Remove extra spaces
+    Do While InStr(cleanName, "  ") > 0
+        cleanName = Replace(cleanName, "  ", " ")
+    Loop
+
+    ' Remove leading/trailing dashes and spaces
+    cleanName = Trim(cleanName)
+    If Left(cleanName, 1) = "-" Then cleanName = Trim(Mid(cleanName, 2))
+    If Right(cleanName, 1) = "-" Then cleanName = Trim(Left(cleanName, Len(cleanName) - 1))
+
+    CleanFSLIName = Trim(cleanName)
 End Function
 
 ' Create Pack Number Company Table with divisions
