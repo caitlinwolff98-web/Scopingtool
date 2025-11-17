@@ -634,9 +634,10 @@ End Sub
 ' Create Scoping Control Table for dynamic PowerBI scoping
 Public Sub CreateScopingControlTable()
     On Error GoTo ErrorHandler
-    
+
     Dim ws As Worksheet
     Dim inputTab As Worksheet
+    Dim packWs As Worksheet
     Dim row As Long
     Dim dataRow As Long
     Dim col As Long
@@ -646,89 +647,114 @@ Public Sub CreateScopingControlTable()
     Dim packName As String
     Dim fsliName As String
     Dim amount As Variant
-    Dim packDict As Object
+    Dim validPacks As Object ' Dictionary of valid packs from Pack Number Company Table
+    Dim packInfo As Object
     Dim division As String
-    
+    Dim isConsolidated As String
+    Dim packRow As Long
+    Dim packLastRow As Long
+
     ' Create worksheet
     Set ws = g_OutputWorkbook.Worksheets.Add
     ws.Name = "Scoping Control Table"
-    
+
+    ' Get Pack Number Company Table to determine valid packs
+    On Error Resume Next
+    Set packWs = g_OutputWorkbook.Worksheets("Pack Number Company Table")
+    On Error GoTo ErrorHandler
+
+    If packWs Is Nothing Then
+        MsgBox "Error: Pack Number Company Table not found. Cannot create Scoping Control Table.", vbCritical
+        Exit Sub
+    End If
+
+    ' Build dictionary of valid packs from Pack Number Company Table
+    Set validPacks = CreateObject("Scripting.Dictionary")
+    packLastRow = packWs.Cells(packWs.Rows.Count, 2).End(xlUp).row
+
+    For packRow = 2 To packLastRow
+        packCode = Trim(packWs.Cells(packRow, 2).Value) ' Column B: Pack Code
+        If packCode <> "" Then
+            Set packInfo = CreateObject("Scripting.Dictionary")
+            packInfo("Name") = Trim(packWs.Cells(packRow, 1).Value) ' Column A: Pack Name
+            packInfo("Division") = Trim(packWs.Cells(packRow, 3).Value) ' Column C: Division
+            packInfo("IsConsolidated") = Trim(packWs.Cells(packRow, 4).Value) ' Column D: Is Consolidated
+            validPacks(packCode) = packInfo
+        End If
+    Next packRow
+
     ' Get input tab
     Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
     If inputTab Is Nothing Then Exit Sub
-    
+
     ' Set up headers
     row = 1
     With ws
         .Cells(row, 1).Value = "Pack Name"
         .Cells(row, 2).Value = "Pack Code"
         .Cells(row, 3).Value = "Division"
-        .Cells(row, 4).Value = "FSLi"
+        .Cells(row, 4).Value = "FSLI"
         .Cells(row, 5).Value = "Amount"
         .Cells(row, 6).Value = "Scoping Status"
         .Cells(row, 7).Value = "Is Consolidated"
-        
+
         ' Format headers
         .Range("A1:G1").Font.Bold = True
         .Range("A1:G1").Interior.Color = RGB(68, 114, 196)
         .Range("A1:G1").Font.Color = RGB(255, 255, 255)
         row = row + 1
-        
-        ' Get dimensions
+
+        ' Get dimensions of input tab
         lastCol = inputTab.Cells(7, inputTab.Columns.Count).End(xlToLeft).Column
         lastRow = inputTab.Cells(inputTab.Rows.Count, 2).End(xlUp).row
-        
-        ' Create pack dictionary to get divisions
-        Set packDict = CreateObject("Scripting.Dictionary")
-        
-        ' Iterate through each pack (column)
+
+        ' Iterate through each pack (column) in input tab
         For col = 3 To lastCol
             packCode = Trim(inputTab.Cells(8, col).Value)
             packName = Trim(inputTab.Cells(7, col).Value)
-            
-            If packCode <> "" And packName <> "" Then
-                ' Get division for this pack
-                division = GetPackDivisionFromTable(packCode)
-                
-                ' Iterate through each FSLi (row)
+
+            ' CRITICAL FIX: Only include packs that exist in Pack Number Company Table
+            If packCode <> "" And packName <> "" And validPacks.Exists(packCode) Then
+                ' Get pack info from Pack Number Company Table
+                Set packInfo = validPacks(packCode)
+                division = packInfo("Division")
+                isConsolidated = packInfo("IsConsolidated")
+
+                ' Iterate through each FSLI (row)
                 For dataRow = 9 To lastRow
                     fsliName = Trim(inputTab.Cells(dataRow, 2).Value)
                     amount = inputTab.Cells(dataRow, col).Value
-                    
-                    ' Only include rows with FSLi names
+
+                    ' Only include rows with FSLI names (exclude statement headers)
                     If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
-                        .Cells(row, 1).Value = packName
+                        .Cells(row, 1).Value = packInfo("Name") ' Use name from Pack Number Company Table
                         .Cells(row, 2).Value = packCode
                         .Cells(row, 3).Value = division
                         .Cells(row, 4).Value = fsliName
-                        
+
                         If IsNumeric(amount) Then
                             .Cells(row, 5).Value = CDbl(amount)
                             .Cells(row, 5).NumberFormat = "#,##0.00"
                         Else
                             .Cells(row, 5).Value = 0
                         End If
-                        
-                        ' Initial scoping status (to be updated in PowerBI)
+
+                        ' Initial scoping status (to be updated in PowerBI or via threshold scoping)
                         .Cells(row, 6).Value = "Not Scoped"
-                        
-                        ' Mark if consolidated
-                        If packCode = g_ConsolidatedPackCode Then
-                            .Cells(row, 7).Value = "Yes"
-                        Else
-                            .Cells(row, 7).Value = "No"
-                        End If
-                        
+
+                        ' Mark if consolidated (use value from Pack Number Company Table)
+                        .Cells(row, 7).Value = isConsolidated
+
                         row = row + 1
                     End If
                 Next dataRow
             End If
         Next col
-        
+
         ' Auto-fit columns
         .Columns("A:G").AutoFit
-        
-        ' Create table
+
+        ' Create Excel Table
         If row > 2 Then
             Dim tbl As ListObject
             On Error Resume Next
@@ -740,11 +766,11 @@ Public Sub CreateScopingControlTable()
             On Error GoTo ErrorHandler
         End If
     End With
-    
+
     Exit Sub
-    
+
 ErrorHandler:
-    Debug.Print "Error creating Scoping Control Table: " & Err.Description
+    MsgBox "Error creating Scoping Control Table: " & Err.Description, vbCritical
 End Sub
 
 ' Helper function to get division from Pack Number Company Table
