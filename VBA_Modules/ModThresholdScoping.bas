@@ -98,12 +98,15 @@ Private Function GetAvailableFSLIs() As Collection
     ' Collect unique FSLIs (excluding headers and totals for threshold selection)
     For row = 9 To lastRow
         fsliName = Trim(inputTab.Cells(row, 2).Value)
-        
-        ' Skip empty, notes, and statement headers
-        If fsliName <> "" And _
-           UCase(fsliName) <> "NOTES" And _
-           Not ModDataProcessing.IsStatementHeader(fsliName) Then
-            
+
+        ' CRITICAL FIX: Stop processing when we hit "NOTES" - everything after is notes section
+        If UCase(fsliName) = "NOTES" Then
+            Exit For ' Stop processing FSLIs - we've reached the notes section
+        End If
+
+        ' Skip empty rows and statement headers
+        If fsliName <> "" And Not ModDataProcessing.IsStatementHeader(fsliName) Then
+
             ' Skip if already in dictionary
             If Not fsliDict.Exists(fsliName) Then
                 ' Add to dictionary and collection
@@ -121,49 +124,93 @@ ErrorHandler:
     Set GetAvailableFSLIs = New Collection
 End Function
 
-' Prompt user to select FSLIs using a custom dialog
+' Prompt user to select FSLIs using a worksheet-based selection method (FIXED for large FSLI lists)
 Private Function PromptUserForFSLISelection(fsliList As Collection) As Collection
     On Error GoTo ErrorHandler
-    
+
     Dim selectedFSLis As New Collection
-    Dim msg As String
+    Dim selectionWs As Worksheet
     Dim i As Long
     Dim userInput As String
+    Dim lastRow As Long
+    Dim row As Long
+    Dim fsliName As String
     Dim selectedIndices() As String
     Dim index As Variant
-    Dim fsliName As String
-    
-    ' Build message with FSLI list
-    msg = "THRESHOLD-BASED SCOPING CONFIGURATION" & vbCrLf & vbCrLf
-    msg = msg & "Select FSLIs for automatic threshold-based scoping." & vbCrLf
-    msg = msg & "Enter the numbers of FSLIs you want to apply thresholds to," & vbCrLf
-    msg = msg & "separated by commas (e.g., 1,3,5)" & vbCrLf & vbCrLf
-    msg = msg & "NOTE: You can select Balance Sheet items like 'Total Assets'" & vbCrLf
-    msg = msg & "or Income Statement items like 'Revenue'. The list below" & vbCrLf
-    msg = msg & "excludes only statement headers (e.g., 'BALANCE SHEET')." & vbCrLf & vbCrLf
-    msg = msg & "Available FSLIs:" & vbCrLf
-    msg = msg & String(50, "-") & vbCrLf
-    
-    ' List all FSLIs
+
+    ' Create temporary worksheet for FSLI selection
+    Set selectionWs = g_SourceWorkbook.Worksheets.Add
+    selectionWs.Name = "FSLI_Selection_TEMP"
+
+    ' Write header and instructions
+    selectionWs.Cells(1, 1).Value = "FSLI SELECTION FOR THRESHOLD-BASED SCOPING"
+    selectionWs.Cells(1, 1).Font.Bold = True
+    selectionWs.Cells(1, 1).Font.Size = 14
+
+    selectionWs.Cells(3, 1).Value = "INSTRUCTIONS:"
+    selectionWs.Cells(3, 1).Font.Bold = True
+    selectionWs.Cells(4, 1).Value = "1. Review the list of FSLIs below"
+    selectionWs.Cells(5, 1).Value = "2. Note the numbers of FSLIs you want to apply thresholds to"
+    selectionWs.Cells(6, 1).Value = "3. Click OK in the next prompt and enter the numbers (e.g., 1,3,5,8)"
+    selectionWs.Cells(7, 1).Value = "4. You can also enter FSLI names (e.g., Total Assets, Revenue)"
+
+    ' Write column headers
+    selectionWs.Cells(9, 1).Value = "#"
+    selectionWs.Cells(9, 2).Value = "FSLI Name"
+    selectionWs.Cells(9, 1).Font.Bold = True
+    selectionWs.Cells(9, 2).Font.Bold = True
+
+    ' Write all FSLIs to the sheet
     For i = 1 To fsliList.Count
-        msg = msg & i & ". " & fsliList(i) & vbCrLf
+        selectionWs.Cells(9 + i, 1).Value = i
+        selectionWs.Cells(9 + i, 2).Value = fsliList(i)
     Next i
-    
-    msg = msg & vbCrLf & "Total FSLIs available: " & fsliList.Count & vbCrLf
-    msg = msg & vbCrLf & "Enter selection:" & vbCrLf
-    msg = msg & "• Numbers (e.g., 1,3,5) OR" & vbCrLf
-    msg = msg & "• FSLi names (e.g., Total Assets, Revenue)" & vbCrLf
-    msg = msg & "• Leave blank to skip" & vbCrLf
-    
-    ' Get user input
-    userInput = InputBox(msg, "Select FSLIs for Threshold Scoping", "")
-    
+
+    ' Format the sheet
+    selectionWs.Columns("A:B").AutoFit
+    selectionWs.Columns("B").ColumnWidth = 60
+
+    ' Add borders
+    lastRow = 9 + fsliList.Count
+    With selectionWs.Range("A9:B" & lastRow)
+        .Borders.LineStyle = xlContinuous
+        .Borders.Weight = xlThin
+    End With
+
+    ' Freeze panes
+    selectionWs.Range("A10").Select
+    ActiveWindow.FreezePanes = True
+
+    ' Activate the sheet so user can see it
+    selectionWs.Activate
+    selectionWs.Range("A1").Select
+
+    ' Prompt user with simpler message
+    MsgBox "A temporary worksheet 'FSLI_Selection_TEMP' has been created with all " & fsliList.Count & " FSLIs." & vbCrLf & vbCrLf & _
+           "Please:" & vbCrLf & _
+           "1. Review the list" & vbCrLf & _
+           "2. Note the numbers of FSLIs you want" & vbCrLf & _
+           "3. Click OK to enter your selection", _
+           vbInformation, "FSLI Selection"
+
+    ' Get user input (now just numbers or names, not showing huge list)
+    userInput = InputBox("Enter the FSLI numbers separated by commas:" & vbCrLf & vbCrLf & _
+                        "Example: 1,3,5,8,12" & vbCrLf & vbCrLf & _
+                        "OR enter FSLI names:" & vbCrLf & _
+                        "Example: Total Assets, Revenue, Net Income" & vbCrLf & vbCrLf & _
+                        "Leave blank to skip threshold scoping.", _
+                        "Enter Your FSLI Selection", "")
+
     ' Parse user input
     If Trim(userInput) = "" Then
+        ' Clean up temporary sheet
+        Application.DisplayAlerts = False
+        selectionWs.Delete
+        Application.DisplayAlerts = True
         Set PromptUserForFSLISelection = selectedFSLis
         Exit Function
     End If
-    
+
     ' Split by comma
     selectedIndices = Split(userInput, ",")
     
@@ -213,11 +260,23 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
             End If
         End If
     Next index
-    
+
+    ' Clean up temporary sheet
+    Application.DisplayAlerts = False
+    If Not selectionWs Is Nothing Then selectionWs.Delete
+    Application.DisplayAlerts = True
+
     Set PromptUserForFSLISelection = selectedFSLis
     Exit Function
-    
+
 ErrorHandler:
+    ' Clean up temporary sheet on error
+    Application.DisplayAlerts = False
+    On Error Resume Next  ' Ignore errors during cleanup
+    If Not selectionWs Is Nothing Then selectionWs.Delete
+    On Error GoTo 0
+    Application.DisplayAlerts = True
+
     MsgBox "Error in FSLI selection: " & Err.Description, vbCritical
     Set PromptUserForFSLISelection = New Collection
 End Function
