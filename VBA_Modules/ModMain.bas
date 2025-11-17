@@ -23,14 +23,15 @@ Public Sub StartScopingTool()
     Dim result As VbMsgBoxResult
     
     ' Display welcome message
-    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool!" & vbCrLf & vbCrLf & _
+    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool v5.0!" & vbCrLf & vbCrLf & _
                     "This tool will:" & vbCrLf & _
                     "1. Analyze your TGK consolidation workbook" & vbCrLf & _
                     "2. Categorize tabs for processing" & vbCrLf & _
                     "3. Create structured tables for Power BI" & vbCrLf & _
-                    "4. Perform mathematical accuracy checks" & vbCrLf & vbCrLf & _
+                    "4. Process IAS 8 segment reporting (optional)" & vbCrLf & _
+                    "5. Generate scoping analysis and recommendations" & vbCrLf & vbCrLf & _
                     "Click OK to continue or Cancel to exit.", _
-                    vbOKCancel + vbInformation, "TGK Scoping Tool")
+                    vbOKCancel + vbInformation, "TGK Scoping Tool v5.0")
     
     If result = vbCancel Then Exit Sub
     
@@ -132,26 +133,42 @@ Public Sub StartScopingTool()
     Application.StatusBar = "Creating Power BI integration assets..."
     ModPowerBIIntegration.CreateAllPowerBIAssets
     Application.StatusBar = False
-    
+
+    ' Step 12a: Process IAS 8 Segment Reporting Document (optional) - NEW in v5.0
+    Application.StatusBar = "Checking for segment reporting document..."
+    Dim segmentProcessed As Boolean
+    segmentProcessed = ModSegmentAnalysis.ProcessSegmentDocument()
+    Application.StatusBar = False
+
     ' Step 13: Save the output workbook with standardized name
     SaveOutputWorkbook
     
     ' Step 14: Display completion message
-    MsgBox "Scoping tool completed successfully!" & vbCrLf & vbCrLf & _
-           "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
-           "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
-           "Generated assets:" & vbCrLf & _
-           "- Data tables for analysis" & vbCrLf & _
-           "- Threshold configuration (if applied)" & vbCrLf & _
-           "- Scoping summary with recommendations" & vbCrLf & _
-           "- Division-based scoping reports (Scoped In/Out)" & vbCrLf & _
-           "- Scoped In Packs Detail with FSLi amounts" & vbCrLf & _
-           "- Interactive Excel dashboard" & vbCrLf & _
-           "- Scoping calculator" & vbCrLf & _
-           "- Power BI integration metadata" & vbCrLf & vbCrLf & _
-           "The workbook can be used standalone or with Power BI!" & vbCrLf & _
-           "See POWERBI_SETUP_COMPLETE.md for next steps.", _
-           vbInformation, "Process Complete"
+    Dim completionMsg As String
+    completionMsg = "Scoping tool v5.0 completed successfully!" & vbCrLf & vbCrLf & _
+                   "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
+                   "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
+                   "Generated assets:" & vbCrLf & _
+                   "- Data tables for analysis" & vbCrLf & _
+                   "- Threshold configuration (if applied)" & vbCrLf & _
+                   "- Scoping summary with recommendations" & vbCrLf & _
+                   "- Division-based scoping reports" & vbCrLf & _
+                   "- Scoped In Packs Detail" & vbCrLf & _
+                   "- Interactive Excel dashboard" & vbCrLf & _
+                   "- Scoping calculator" & vbCrLf & _
+                   "- Power BI integration metadata" & vbCrLf
+
+    ' Add segment tables message if processed
+    If segmentProcessed Then
+        completionMsg = completionMsg & "- IAS 8 Segment Pack Mapping (NEW)" & vbCrLf & _
+                       "- IAS 8 Segment Summary (NEW)" & vbCrLf
+    End If
+
+    completionMsg = completionMsg & vbCrLf & _
+                   "The workbook can be used standalone or with Power BI!" & vbCrLf & _
+                   "See IMPLEMENTATION_GUIDE.md for next steps."
+
+    MsgBox completionMsg, vbInformation, "Process Complete - v5.0"
     
     Exit Sub
     
