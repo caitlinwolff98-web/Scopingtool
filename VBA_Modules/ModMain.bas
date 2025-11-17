@@ -182,27 +182,85 @@ End Sub
 ' Save output workbook with standardized name
 Private Sub SaveOutputWorkbook()
     On Error GoTo ErrorHandler
-    
+
     Dim savePath As String
     Dim fileName As String
-    
+    Dim saveDirectory As String
+    Dim fileExists As Boolean
+    Dim retryCount As Integer
+
     ' Standard output file name
     fileName = "Bidvest Scoping Tool Output.xlsx"
-    
-    ' Use the same directory as the source workbook
-    savePath = g_SourceWorkbook.Path & Application.PathSeparator & fileName
-    
+
+    ' Validate that output workbook exists
+    If g_OutputWorkbook Is Nothing Then
+        MsgBox "Error: Output workbook not initialized. Cannot save.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Determine save directory
+    ' First, try to use the same directory as source workbook
+    If g_SourceWorkbook.Path <> "" Then
+        saveDirectory = g_SourceWorkbook.Path
+    Else
+        ' If source workbook hasn't been saved, use user's Documents folder
+        saveDirectory = Environ("USERPROFILE") & "\Documents"
+        If Dir(saveDirectory, vbDirectory) = "" Then
+            ' If Documents doesn't exist, use Desktop
+            saveDirectory = Environ("USERPROFILE") & "\Desktop"
+        End If
+    End If
+
+    savePath = saveDirectory & Application.PathSeparator & fileName
+
+    ' Check if file already exists
+    fileExists = (Dir(savePath) <> "")
+
     ' Save the workbook
     Application.DisplayAlerts = False
-    g_OutputWorkbook.SaveAs fileName:=savePath, FileFormat:=xlOpenXMLWorkbook
-    Application.DisplayAlerts = True
-    
-    Exit Sub
-    
+
+    If fileExists Then
+        ' File exists - try to close it first if it's open in another instance
+        On Error Resume Next
+        Dim existingWb As Workbook
+        Set existingWb = Workbooks(fileName)
+        If Not existingWb Is Nothing Then
+            existingWb.Close SaveChanges:=False
+        End If
+        On Error GoTo ErrorHandler
+
+        ' Delete the existing file
+        Kill savePath
+    End If
+
+    ' Save with retry logic
+    For retryCount = 1 To 3
+        On Error Resume Next
+        g_OutputWorkbook.SaveAs fileName:=savePath, FileFormat:=xlOpenXMLWorkbook
+
+        If Err.Number = 0 Then
+            ' Success!
+            Application.DisplayAlerts = True
+            MsgBox "Output workbook saved successfully:" & vbCrLf & vbCrLf & savePath, _
+                   vbInformation, "File Saved"
+            Exit Sub
+        End If
+
+        ' Failed - wait and retry
+        Application.Wait Now + TimeValue("00:00:01")
+    Next retryCount
+
+    ' If we got here, all retries failed
+    On Error GoTo ErrorHandler
+    Err.Raise vbObjectError + 1000, , "Failed to save after 3 attempts"
+
 ErrorHandler:
     Application.DisplayAlerts = True
-    ' If save fails, just leave it unsaved for user to manually save
-    Debug.Print "Could not auto-save output workbook: " & Err.Description
+    MsgBox "Could not automatically save the output workbook." & vbCrLf & vbCrLf & _
+           "Error: " & Err.Description & vbCrLf & vbCrLf & _
+           "Attempted path: " & savePath & vbCrLf & vbCrLf & _
+           "Please save the workbook manually using File > Save As.", _
+           vbExclamation, "Auto-Save Failed"
 End Sub
 
 ' Create scoping summary sheet with recommendations

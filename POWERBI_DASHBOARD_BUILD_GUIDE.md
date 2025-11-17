@@ -719,6 +719,163 @@ Position these cards at the top of the page above the table.
 
 ---
 
+#### ⚠️ ALTERNATIVE METHOD: Manual Scoping Without Edit Mode
+
+**If you cannot enable edit mode or it's not working, use this button-based approach:**
+
+##### Option A: Excel-Based Scoping Workflow (RECOMMENDED)
+
+This is the most reliable method and works in all Power BI editions:
+
+1. **In Power BI Desktop:**
+   - Keep the Manual Scoping table as **read-only** (no edit mode needed)
+   - Use slicers to filter and identify which packs need scoping
+   - Note down the Pack Codes you want to scope
+
+2. **Switch to Excel:**
+   - Open the "Bidvest Scoping Tool Output.xlsx" file
+   - Go to the "Scoping_Control_Table" sheet
+   - Find the rows with the Pack Codes you noted
+   - Change the "Scoping Status" column:
+     - `Not Scoped` → `Scoped In (Manual)`
+     - Or → `Scoped Out`
+   - Save the Excel file (Ctrl+S)
+
+3. **Refresh Power BI:**
+   - Return to Power BI Desktop
+   - Click **Home → Refresh**
+   - Your scoping changes will appear immediately
+   - Coverage % will update automatically
+
+**Advantages:**
+- ✅ Always works (no edit mode issues)
+- ✅ Can use Excel features (Find, Filter, Multi-select)
+- ✅ Can make bulk changes quickly
+- ✅ No risk of data corruption
+
+##### Option B: Filter-Based Scoping (Power BI Only)
+
+If you want to stay in Power BI, use this workflow:
+
+1. **Add Clear Selection Buttons:**
+   - Insert 4 buttons on the Manual Scoping page
+   - Button 1: "Show All Packs" (clears filters)
+   - Button 2: "Show Not Scoped Only" (filters to Not Scoped)
+   - Button 3: "Show Manual Scope Only" (filters to Scoped In Manual)
+   - Button 4: "Show Auto Scope Only" (filters to Scoped In Auto)
+
+2. **Configure Buttons:**
+
+   **Button 1: "Show All Packs"**
+   - Action type: Bookmark
+   - Create bookmark with all slicers cleared
+   - Or use Filter action to clear Scoping Status slicer
+
+   **Button 2: "Show Not Scoped Only"**
+   - Action type: Filter
+   - Filter: Scoping_Control_Table[Scoping Status] = "Not Scoped"
+   - Allows you to focus on packs that need decisions
+
+   **Button 3: "Show Manual Scope Only"**
+   - Action type: Filter
+   - Filter: Scoping_Control_Table[Scoping Status] = "Scoped In (Manual)"
+   - Review your manual scoping decisions
+
+   **Button 4: "Show Auto Scope Only"**
+   - Action type: Filter
+   - Filter: Scoping_Control_Table[Scoping Status] = "Scoped In (Auto)"
+   - Review threshold-based scoping
+
+3. **Visual Styling for Buttons:**
+   - Shape: Rounded rectangle
+   - Colors:
+     - Button 1: Blue (#2196F3)
+     - Button 2: Yellow (#FFC107)
+     - Button 3: Light Green (#8BC34A)
+     - Button 4: Dark Green (#4CAF50)
+   - Text: Bold, White, 12pt
+   - Size: 150px wide × 40px tall
+   - Position: Horizontal row above the table
+
+4. **Add Export Button:**
+   - Button 5: "Export to Excel"
+   - Action: Web URL
+   - URL: Link to instructions for exporting data
+   - Purpose: Users can export filtered data to Excel for batch updates
+
+##### Option C: Two-Stage Workflow (Hybrid)
+
+Combine Power BI filtering with Excel editing:
+
+1. **Stage 1 - Identify in Power BI:**
+   - Use Page 2 (Manual Scoping Control)
+   - Use slicers to filter:
+     - FSLI: "Revenue"
+     - Amount: > 50,000,000
+     - Scoping Status: "Not Scoped"
+   - Export the filtered table to Excel:
+     - Right-click table → Export data
+     - Save as "Packs_To_Scope.xlsx"
+
+2. **Stage 2 - Update in Excel:**
+   - Open both files:
+     - "Packs_To_Scope.xlsx" (your filtered list)
+     - "Bidvest Scoping Tool Output.xlsx" (the data source)
+   - Use VLOOKUP or manual updates to change Scoping Status
+   - Save "Bidvest Scoping Tool Output.xlsx"
+
+3. **Stage 3 - Refresh Power BI:**
+   - Return to Power BI Desktop
+   - Click Refresh
+   - Verify changes appear correctly
+
+##### Troubleshooting Edit Mode
+
+If you still want to try enabling edit mode, follow these exact steps:
+
+1. **Verify Power BI Version:**
+   - Edit mode requires Power BI Desktop (not Web)
+   - Version: April 2023 or later
+   - Check: Help → About
+
+2. **Enable Edit Mode (Detailed Steps):**
+   - Click the table visual
+   - Format pane (paint roller icon)
+   - Scroll to **General** section
+   - Expand **Advanced options**
+   - Find **"Edit interactions"** or **"Edit mode"**
+   - Toggle: **ON**
+
+3. **Configure Editable Columns:**
+   - Only "Scoping Status" should be editable
+   - All other columns: Read-only
+
+4. **Common Issues:**
+   - **Issue:** Edit mode option not visible
+     - **Fix:** Update Power BI Desktop to latest version
+
+   - **Issue:** Edit mode exists but cells won't change
+     - **Fix:** Check data source connection is valid
+     - **Fix:** Ensure Excel file is not open elsewhere
+
+   - **Issue:** Changes don't persist
+     - **Fix:** Edit mode doesn't write back to Excel automatically
+     - **Fix:** Use Excel-based workflow instead (Option A above)
+
+---
+
+**⭐ RECOMMENDATION:**
+
+For most users, **Option A (Excel-Based Workflow)** is the best choice because:
+- It always works reliably
+- You can make bulk changes efficiently
+- Excel's Find & Replace, filtering, and sorting are more powerful
+- No risk of Power BI sync issues
+
+The Power BI dashboard is best used for **visualization and analysis**, while Excel is better for **data entry and updates**.
+
+---
+
 ### Page 3: FSLI Analysis
 
 #### Step 3.3.1: Create Page
