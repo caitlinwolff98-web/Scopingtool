@@ -23,15 +23,16 @@ Public Sub StartScopingTool()
     Dim result As VbMsgBoxResult
     
     ' Display welcome message
-    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool v5.0!" & vbCrLf & vbCrLf & _
+    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool v5.2!" & vbCrLf & vbCrLf & _
                     "This tool will:" & vbCrLf & _
                     "1. Analyze your TGK consolidation workbook" & vbCrLf & _
                     "2. Categorize tabs for processing" & vbCrLf & _
                     "3. Create structured tables for Power BI" & vbCrLf & _
                     "4. Process IAS 8 segment reporting (optional)" & vbCrLf & _
-                    "5. Generate scoping analysis and recommendations" & vbCrLf & vbCrLf & _
+                    "5. Generate comprehensive interactive Excel dashboards" & vbCrLf & _
+                    "6. Provide FSLI, Division, and Segment coverage analysis" & vbCrLf & vbCrLf & _
                     "Click OK to continue or Cancel to exit.", _
-                    vbOKCancel + vbInformation, "TGK Scoping Tool v5.0")
+                    vbOKCancel + vbInformation, "TGK Scoping Tool v5.2")
     
     If result = vbCancel Then Exit Sub
     

@@ -22,7 +22,7 @@ Public Const CAT_TRIAL_BALANCE As String = "Trial Balance"
 Public Const CAT_UNCATEGORIZED As String = "Uncategorized"
 
 ' ==================== VERSION INFORMATION ====================
-Public Const TOOL_VERSION As String = "5.1.0"
+Public Const TOOL_VERSION As String = "5.2.0"
 Public Const TOOL_NAME As String = "Bidvest Scoping Tool"
 Public Const TOOL_DATE As String = "2025-11"
 
