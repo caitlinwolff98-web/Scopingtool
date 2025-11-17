@@ -20,6 +20,11 @@
 8. [Troubleshooting](#8-troubleshooting)
 9. [Technical Reference](#9-technical-reference)
 
+## Additional Guides
+
+- **[VISUALIZATION_ALTERNATIVES.md](VISUALIZATION_ALTERNATIVES.md)** - Complete evaluation of Power BI vs. alternatives (Tableau, Qlik, Excel, Python, etc.)
+- **[POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md)** - Step-by-step guide to enable manual data entry in Power BI (with troubleshooting)
+
 ---
 
 ## 1. Executive Summary
@@ -565,6 +570,17 @@ The tool intelligently extracts FSLIs from Column B of "Input Continuing" tab wi
 
 Power BI provides dynamic, interactive scoping analysis with real-time coverage updates.
 
+**📚 Additional Resources:**
+- **[VISUALIZATION_ALTERNATIVES.md](VISUALIZATION_ALTERNATIVES.md)** - Why Power BI? Comparison with Tableau, Qlik, Excel, Python, and other tools
+- **[POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md)** - Detailed edit mode setup (required for manual scoping)
+
+**Why Power BI?** See VISUALIZATION_ALTERNATIVES.md for complete evaluation showing Power BI is optimal because:
+- ✅ Free (Desktop version)
+- ✅ PwC-approved
+- ✅ Edit mode for manual scoping (critical feature)
+- ✅ Excellent Excel integration
+- ✅ DAX calculation engine
+
 ### Step 1: Import Excel Tables
 
 **Launch Power BI Desktop**
@@ -917,6 +933,10 @@ Pack_Number_Company_Table[Is Consolidated] <> "Yes"
 
 **Critical Configuration:**
 
+**📚 Detailed Guide:** See [POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md) for complete step-by-step instructions with screenshots and troubleshooting.
+
+**Quick Steps:**
+
 To enable users to manually change scoping status in Power BI:
 
 1. Click on Scoping Control Table visual
@@ -934,6 +954,14 @@ To enable users to manually change scoping status in Power BI:
 - Coverage percentages recalculate
 - Dashboard reflects new scope
 
+**If Edit Mode Doesn't Work:**
+
+See [POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md) for:
+- 3 alternative methods for manual scoping
+- Detailed troubleshooting (10+ common issues)
+- Screenshots and visual guides
+- Workarounds if edit mode unavailable
+
 **Alternative Method (if Edit not available):**
 
 Create a separate "Scoping Decisions" table in Excel:
@@ -944,6 +972,8 @@ Create a separate "Scoping Decisions" table in Excel:
 ```
 
 Import to Power BI and create relationship with Scoping_Control_Table.
+
+Full details in [POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md) Method 2.
 
 ### Step 7: Publish & Share (Optional)
 

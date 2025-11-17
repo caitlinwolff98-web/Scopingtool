@@ -20,6 +20,11 @@
 - ✅ Comprehensive troubleshooting
 - ✅ Technical reference
 
+### **📚 Additional Specialized Guides:**
+
+- **[VISUALIZATION_ALTERNATIVES.md](VISUALIZATION_ALTERNATIVES.md)** - Complete evaluation: Power BI vs. Tableau, Qlik, Excel, Python, and others (answers "why Power BI?")
+- **[POWER_BI_EDIT_MODE_GUIDE.md](POWER_BI_EDIT_MODE_GUIDE.md)** - Step-by-step edit mode setup with troubleshooting (enables manual scoping)
+
 ---
 
 ## Overview
