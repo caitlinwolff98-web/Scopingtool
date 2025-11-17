@@ -134,6 +134,11 @@ Public Sub StartScopingTool()
     ModPowerBIIntegration.CreateAllPowerBIAssets
     Application.StatusBar = False
 
+    ' Step 12b: Create comprehensive Excel dashboard - NEW in v5.1
+    Application.StatusBar = "Creating interactive Excel dashboard..."
+    ModExcelDashboard.CreateComprehensiveExcelDashboard
+    Application.StatusBar = False
+
     ' Step 12a: Process IAS 8 Segment Reporting Document (optional) - NEW in v5.0
     Application.StatusBar = "Checking for segment reporting document..."
     Dim segmentProcessed As Boolean
@@ -145,16 +150,19 @@ Public Sub StartScopingTool()
     
     ' Step 14: Display completion message
     Dim completionMsg As String
-    completionMsg = "Scoping tool v5.0 completed successfully!" & vbCrLf & vbCrLf & _
+    completionMsg = "Scoping tool v5.1 completed successfully!" & vbCrLf & vbCrLf & _
                    "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
                    "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
-                   "Generated assets:" & vbCrLf & _
+                   "NEW in v5.1: Comprehensive Excel Dashboard!" & vbCrLf & _
+                   "  • Dashboard Summary with KPIs & charts" & vbCrLf & _
+                   "  • Interactive Scoping Control (dropdowns)" & vbCrLf & _
+                   "  • Real-time coverage % updates" & vbCrLf & _
+                   "  • FSLI, Division, Segment analysis" & vbCrLf & vbCrLf & _
+                   "Additional assets:" & vbCrLf & _
                    "- Data tables for analysis" & vbCrLf & _
                    "- Threshold configuration (if applied)" & vbCrLf & _
                    "- Scoping summary with recommendations" & vbCrLf & _
                    "- Division-based scoping reports" & vbCrLf & _
-                   "- Scoped In Packs Detail" & vbCrLf & _
-                   "- Interactive Excel dashboard" & vbCrLf & _
                    "- Scoping calculator" & vbCrLf & _
                    "- Power BI integration metadata" & vbCrLf
 
@@ -165,10 +173,11 @@ Public Sub StartScopingTool()
     End If
 
     completionMsg = completionMsg & vbCrLf & _
-                   "The workbook can be used standalone or with Power BI!" & vbCrLf & _
+                   "Excel dashboard works standalone OR with Power BI!" & vbCrLf & _
+                   "Navigate sheets: Dashboard Summary, Scoping Control, etc." & vbCrLf & _
                    "See IMPLEMENTATION_GUIDE.md for next steps."
 
-    MsgBox completionMsg, vbInformation, "Process Complete - v5.0"
+    MsgBox completionMsg, vbInformation, "Process Complete - v5.1 Excel Dashboard"
     
     Exit Sub
     
