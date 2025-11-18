@@ -151,14 +151,16 @@ Public Sub StartScopingTool()
     
     ' Step 14: Display completion message
     Dim completionMsg As String
-    completionMsg = "Scoping tool v5.1 completed successfully!" & vbCrLf & vbCrLf & _
+    completionMsg = "Scoping tool v5.2 completed successfully!" & vbCrLf & vbCrLf & _
                    "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
                    "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
-                   "NEW in v5.1: Comprehensive Excel Dashboard!" & vbCrLf & _
-                   "  • Dashboard Summary with KPIs & charts" & vbCrLf & _
-                   "  • Interactive Scoping Control (dropdowns)" & vbCrLf & _
-                   "  • Real-time coverage % updates" & vbCrLf & _
-                   "  • FSLI, Division, Segment analysis" & vbCrLf & vbCrLf & _
+                   "NEW in v5.2: Production-Ready Interactive Dashboard!" & vbCrLf & _
+                   "  ✓ Executive Summary Dashboard" & vbCrLf & _
+                   "  ✓ FSLI Coverage Analysis" & vbCrLf & _
+                   "  ✓ Division × FSLI Coverage" & vbCrLf & _
+                   "  ✓ Highest Contributors (Top 100)" & vbCrLf & _
+                   "  ✓ Interactive Scoping Control (dropdowns)" & vbCrLf & _
+                   "  ✓ Real-time coverage updates" & vbCrLf & vbCrLf & _
                    "Additional assets:" & vbCrLf & _
                    "- Data tables for analysis" & vbCrLf & _
                    "- Threshold configuration (if applied)" & vbCrLf & _
@@ -169,16 +171,20 @@ Public Sub StartScopingTool()
 
     ' Add segment tables message if processed
     If segmentProcessed Then
-        completionMsg = completionMsg & "- IAS 8 Segment Pack Mapping (NEW)" & vbCrLf & _
-                       "- IAS 8 Segment Summary (NEW)" & vbCrLf
+        completionMsg = completionMsg & "- IAS 8 Segment Pack Mapping" & vbCrLf & _
+                       "- IAS 8 Segment Summary" & vbCrLf
     End If
 
     completionMsg = completionMsg & vbCrLf & _
-                   "Excel dashboard works standalone OR with Power BI!" & vbCrLf & _
-                   "Navigate sheets: Dashboard Summary, Scoping Control, etc." & vbCrLf & _
-                   "See IMPLEMENTATION_GUIDE.md for next steps."
+                   "Navigate sheets:" & vbCrLf & _
+                   "• Dashboard - Executive Summary (start here!)" & vbCrLf & _
+                   "• FSLI Coverage Analysis" & vbCrLf & _
+                   "• Division FSLI Coverage" & vbCrLf & _
+                   "• Highest Contributors" & vbCrLf & _
+                   "• Scoping Control Table (make changes here)" & vbCrLf & vbCrLf & _
+                   "See RELEASE_NOTES_V5.2.md for full details."
 
-    MsgBox completionMsg, vbInformation, "Process Complete - v5.1 Excel Dashboard"
+    MsgBox completionMsg, vbInformation, "Process Complete - v5.2 Production Ready!"
     
     Exit Sub
     

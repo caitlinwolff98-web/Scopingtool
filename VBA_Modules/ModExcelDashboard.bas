@@ -233,17 +233,31 @@ Private Sub CreateEnhancedKPICard(ws As Worksheet, row As Long, col As Long, _
 
         ' Value with formula
         If formatType = "%" Then
-            ' Coverage percentage formula
+            ' Coverage percentage formula - COUNT BOTH AUTO AND MANUAL SCOPING
             If InStr(filterValue, "Scoped") > 0 Then
-                formulaStr = "=IFERROR(SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
+                ' Scoped percentage = (Auto + Manual) / Total
+                formulaStr = "=IFERROR((" & _
+                            "SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
                             "'" & tblSheet.Name & "'!" & tbl.ListColumns("Scoping Status").DataBodyRange.Address & ",""Scoped In (Auto)""," & _
-                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")/" & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")" & _
+                            "+" & _
+                            "SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Scoping Status").DataBodyRange.Address & ",""Scoped In (Manual)""," & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")" & _
+                            ")/" & _
                             "SUMIF('" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No""," & _
                             "'" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "),0)"
             Else
-                formulaStr = "=1-IFERROR(SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
+                ' Not scoped percentage = 1 - (Auto + Manual) / Total
+                formulaStr = "=1-IFERROR((" & _
+                            "SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
                             "'" & tblSheet.Name & "'!" & tbl.ListColumns("Scoping Status").DataBodyRange.Address & ",""Scoped In (Auto)""," & _
-                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")/" & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")" & _
+                            "+" & _
+                            "SUMIFS('" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "," & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Scoping Status").DataBodyRange.Address & ",""Scoped In (Manual)""," & _
+                            "'" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No"")" & _
+                            ")/" & _
                             "SUMIF('" & tblSheet.Name & "'!" & tbl.ListColumns("Is Consolidated").DataBodyRange.Address & ",""No""," & _
                             "'" & tblSheet.Name & "'!" & tbl.ListColumns("Amount").DataBodyRange.Address & "),1)"
             End If
@@ -531,6 +545,14 @@ Private Sub CreateFSLICoverageAnalysis()
         End If
     Next dataRow
 
+    ' Check if we have data
+    If fsliDict.Count = 0 Then
+        ws.Cells(1, 1).Value = "No FSLI data found. Ensure Scoping Control Table has non-consolidated data."
+        ws.Cells(1, 1).Font.Size = 14
+        ws.Cells(1, 1).Font.Bold = True
+        Exit Sub
+    End If
+
     ' Write header
     row = 1
     With ws
@@ -677,6 +699,14 @@ Private Sub CreateDivisionSegmentAnalysis()
             divisionDict(fsliDivKey)("PackCount") = divisionDict(fsliDivKey)("PackCount") + 1
         End If
     Next dataRow
+
+    ' Check if we have data
+    If divisionDict.Count = 0 Then
+        ws.Cells(1, 1).Value = "No Division/FSLI data found. Ensure Scoping Control Table has non-consolidated data."
+        ws.Cells(1, 1).Font.Size = 14
+        ws.Cells(1, 1).Font.Bold = True
+        Exit Sub
+    End If
 
     ' Write data to worksheet
     row = 1
@@ -871,6 +901,15 @@ Private Sub CreateInteractiveWorksheet()
             End If
         End If
     Next dataRow
+
+    ' Check if we have any contributors
+    If contributorsDict.Count = 0 Then
+        ' No contributors found - add message and exit
+        ws.Cells(1, 1).Value = "No contributors found. Ensure Scoping Control Table has data."
+        ws.Cells(1, 1).Font.Size = 14
+        ws.Cells(1, 1).Font.Bold = True
+        Exit Sub
+    End If
 
     ' Sort contributors by amount (largest first) - using simple bubble sort
     Dim keys() As Variant

@@ -702,6 +702,18 @@ Public Sub CreateScopingControlTable()
     Dim isConsolidated As String
     Dim packRow As Long
     Dim packLastRow As Long
+    Dim existingWs As Worksheet
+
+    ' Check if worksheet already exists and delete it
+    On Error Resume Next
+    Set existingWs = g_OutputWorkbook.Worksheets("Scoping Control Table")
+    If Not existingWs Is Nothing Then
+        Application.DisplayAlerts = False
+        existingWs.Delete
+        Application.DisplayAlerts = True
+        Set existingWs = Nothing
+    End If
+    On Error GoTo ErrorHandler
 
     ' Create worksheet
     Set ws = g_OutputWorkbook.Worksheets.Add
