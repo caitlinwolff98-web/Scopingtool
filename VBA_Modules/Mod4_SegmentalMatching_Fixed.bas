@@ -362,7 +362,7 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
     Dim packTable As Worksheet
     Dim lastRow As Long
     Dim row As Long
-    Dim packCode As String
+    Dim packCode As Variant  ' CRITICAL FIX: Must be Variant for For Each loop
     Dim matchInfo As Object
 
     ' Get Pack Number Company Table
@@ -377,8 +377,8 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
         packCode = packTable.Cells(row, 2).Value
 
         ' Look up in match results
-        If matchResults.exists(packCode) Then
-            Set matchInfo = matchResults(packCode)
+        If matchResults.exists(CStr(packCode)) Then
+            Set matchInfo = matchResults(CStr(packCode))
 
             ' Update Division (Column 3)
             If matchInfo("Division") <> "Not Mapped" Then
@@ -392,7 +392,7 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
         End If
     Next row
 
-    ' Also update Mod3 module's pack segments dictionary for future use
+    ' CRITICAL FIX: Also update Mod3 module's pack segments dictionary for future use
     For Each packCode In matchResults.Keys
         Set matchInfo = matchResults(packCode)
         If matchInfo("Segment") <> "Not Mapped" Then
