@@ -596,6 +596,39 @@ Private Function FindFSLIRow(ws As Worksheet, fsli As String) As Long
     FindFSLIRow = 0 ' Not found
 End Function
 
+' ==================== GENERATE OTHER TABLES (OPTIONAL) ====================
+Public Sub GenerateDiscontinuedTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
+    '------------------------------------------------------------------------
+    ' Generate Discontinued Operations tables (similar to Full Input)
+    ' Currently not implemented - placeholder for future enhancement
+    '------------------------------------------------------------------------
+    ' Future implementation: Follow same pattern as GenerateFullInputTables
+End Sub
+
+Public Sub GenerateJournalsTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
+    '------------------------------------------------------------------------
+    ' Generate Journals Continuing tables (similar to Full Input)
+    ' Currently not implemented - placeholder for future enhancement
+    '------------------------------------------------------------------------
+    ' Future implementation: Follow same pattern as GenerateFullInputTables
+End Sub
+
+Public Sub GenerateConsolTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
+    '------------------------------------------------------------------------
+    ' Generate Consol Continuing tables (similar to Full Input)
+    ' Currently not implemented - placeholder for future enhancement
+    '------------------------------------------------------------------------
+    ' Future implementation: Follow same pattern as GenerateFullInputTables
+End Sub
+
+Public Sub GenerateFSLiKeyTable(tabCategories As Object)
+    '------------------------------------------------------------------------
+    ' Generate FSLI Key Table with all unique FSLIs and metadata
+    ' Currently not implemented - placeholder for future enhancement
+    '------------------------------------------------------------------------
+    ' Future implementation: Create a master FSLI reference table
+End Sub
+
 Private Sub FormatTable(ws As Worksheet)
     '------------------------------------------------------------------------
     ' Apply professional formatting to table
