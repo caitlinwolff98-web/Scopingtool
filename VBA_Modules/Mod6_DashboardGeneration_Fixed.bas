@@ -227,7 +227,7 @@ Private Sub CreateManualScopingInterface()
     Dim fsli As String
     Dim amount As Variant
     Dim percentage As Variant
-    Dim scopingStatus As String
+    Dim scopingStatus As Object  ' CRITICAL FIX: Must be Object (Dictionary) not String
 
     Set scopeWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     scopeWs.Name = "Manual Scoping Interface"
