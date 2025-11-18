@@ -300,7 +300,7 @@ Private Function FindBestFuzzyMatch(targetCode As String, targetName As String, 
         End If
 
         ' Also check name similarity
-        similarity = CalculateSimilarity(targetName, candidates(candidateCode)("Name"))
+        similarity = CalculateSimilarity(targetName, CStr(candidates(candidateCode)("Name")))
 
         If similarity > bestSimilarity Then
             bestSimilarity = similarity
