@@ -65,6 +65,9 @@ Private Sub CreateDashboardOverview()
     Dim dashWs As Worksheet
     Dim row As Long
 
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Dashboard - Overview"
+
     Set dashWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     dashWs.Name = "Dashboard - Overview"
 
@@ -233,6 +236,9 @@ Private Sub CreateManualScopingInterface()
     Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
     Dim headerRow As Long
     Dim packNameFull As String
+
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Manual Scoping Interface"
 
     Set scopeWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     scopeWs.Name = "Manual Scoping Interface"
@@ -422,6 +428,9 @@ Private Sub CreateCoverageByFSLI()
     Dim fsliType As String
     Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
 
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Coverage by FSLI"
+
     Set coverageWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     coverageWs.Name = "Coverage by FSLI"
 
@@ -597,6 +606,9 @@ Private Sub CreateCoverageByDivision()
     Dim divisionName As String
     Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
 
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Coverage by Division"
+
     Set divWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     divWs.Name = "Coverage by Division"
 
@@ -732,6 +744,9 @@ Private Sub CreateCoverageBySegment()
     Dim segment As Variant
     Dim segmentName As String
     Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
+
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Coverage by Segment"
 
     Set segWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     segWs.Name = "Coverage by Segment"
@@ -876,6 +891,9 @@ Private Sub CreateDetailedPackAnalysis()
     Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
     Dim lastCol As Long
     Dim packScopingInfo As Object  ' CRITICAL FIX: Must be Object not Dictionary
+
+    ' CRITICAL FIX: Delete worksheet if it already exists
+    DeleteWorksheetIfExists "Detailed Pack Analysis"
 
     Set packWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     packWs.Name = "Detailed Pack Analysis"
@@ -1413,6 +1431,26 @@ Private Sub AddDashboardLink(ws As Worksheet, row As Long, col As Long, displayT
 
     ws.Cells(row, col).Font.Color = RGB(0, 0, 255)
     ws.Cells(row, col).Font.Underline = xlUnderlineStyleSingle
+
+    On Error GoTo 0
+End Sub
+
+Private Sub DeleteWorksheetIfExists(sheetName As String)
+    '------------------------------------------------------------------------
+    ' Delete a worksheet if it already exists
+    ' CRITICAL FIX: Prevents "application-defined or object-defined error"
+    '               when trying to create worksheets that already exist
+    '------------------------------------------------------------------------
+    On Error Resume Next
+
+    Dim ws As Worksheet
+    Set ws = Mod1_MainController.g_OutputWorkbook.Worksheets(sheetName)
+
+    If Not ws Is Nothing Then
+        Application.DisplayAlerts = False
+        ws.Delete
+        Application.DisplayAlerts = True
+    End If
 
     On Error GoTo 0
 End Sub
