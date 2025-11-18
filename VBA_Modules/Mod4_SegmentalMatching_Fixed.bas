@@ -157,6 +157,7 @@ Private Function ExtractSegmentalPacks(segmentalWb As Workbook, segmentalTabs As
     Dim packCode As String
     Dim segmentName As String
     Dim dashPos As Long
+    Dim packInfo As Object  ' CRITICAL FIX: Move declaration outside loop
 
     Set packs = CreateObject("Scripting.Dictionary")
 
@@ -187,13 +188,12 @@ Private Function ExtractSegmentalPacks(segmentalWb As Workbook, segmentalTabs As
 
                     If packCode <> "" And packName <> "" Then
                         If Not packs.exists(packCode) Then
-                            Dim packInfo As Object
                             Set packInfo = CreateObject("Scripting.Dictionary")
                             packInfo("Name") = packName
                             packInfo("Segment") = segmentName
                             packInfo("Tab") = CStr(tabName)
 
-                            packs(packCode) = packInfo
+                            Set packs(packCode) = packInfo  ' CRITICAL FIX: Use Set for object assignment
                         End If
                     End If
                 End If
@@ -222,6 +222,7 @@ Private Function ExtractStripePacks(tabCategories As Object, divisionNames As Ob
     Dim packCode As String
     Dim packName As String
     Dim divisionName As String
+    Dim packInfo As Object  ' CRITICAL FIX: Move declaration outside loop
 
     Set packs = CreateObject("Scripting.Dictionary")
 
@@ -245,13 +246,12 @@ Private Function ExtractStripePacks(tabCategories As Object, divisionNames As Ob
 
                 If packCode <> "" And packName <> "" Then
                     If Not packs.exists(packCode) Then
-                        Dim packInfo As Object
                         Set packInfo = CreateObject("Scripting.Dictionary")
                         packInfo("Name") = packName
                         packInfo("Division") = divisionName
                         packInfo("DivisionTab") = CStr(tabName)
 
-                        packs(packCode) = packInfo
+                        Set packs(packCode) = packInfo  ' CRITICAL FIX: Use Set for object assignment
                     End If
                 End If
             Next col
@@ -274,7 +274,7 @@ Private Function ExtractStripePacks(tabCategories As Object, divisionNames As Ob
                     packInfo("Division") = "Not Mapped"
                     packInfo("DivisionTab") = "N/A"
 
-                    packs(packCode) = packInfo
+                    Set packs(packCode) = packInfo  ' CRITICAL FIX: Use Set for object assignment
                 End If
             End If
         Next col
@@ -314,7 +314,7 @@ Private Function PerformPackMatching(stripePacks As Object, segmentPacks As Obje
             matchInfo("MatchType") = "Exact"
             matchInfo("Similarity") = 100
 
-            matchResults(stripeCode) = matchInfo
+            Set matchResults(stripeCode) = matchInfo  ' CRITICAL FIX: Use Set for object assignment
         Else
             ' Try fuzzy matching
             bestMatch = FindBestFuzzyMatch(CStr(stripeCode), CStr(stripePacks(stripeCode)("Name")), segmentPacks, bestSimilarity)
@@ -330,7 +330,7 @@ Private Function PerformPackMatching(stripePacks As Object, segmentPacks As Obje
                 matchInfo("MatchType") = "Fuzzy"
                 matchInfo("Similarity") = bestSimilarity
 
-                matchResults(stripeCode) = matchInfo
+                Set matchResults(stripeCode) = matchInfo  ' CRITICAL FIX: Use Set for object assignment
             Else
                 ' No match found
                 Set matchInfo = CreateObject("Scripting.Dictionary")
@@ -343,7 +343,7 @@ Private Function PerformPackMatching(stripePacks As Object, segmentPacks As Obje
                 matchInfo("MatchType") = "Not Found"
                 matchInfo("Similarity") = 0
 
-                matchResults(stripeCode) = matchInfo
+                Set matchResults(stripeCode) = matchInfo  ' CRITICAL FIX: Use Set for object assignment
             End If
         End If
     Next stripeCode
