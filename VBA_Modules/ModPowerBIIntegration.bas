@@ -591,44 +591,93 @@ End Function
 ' Main entry point to create all Power BI integration assets
 Public Sub CreateAllPowerBIAssets()
     On Error GoTo ErrorHandler
-    
+
+    Dim errorsOccurred As String
+    Dim criticalError As Boolean
+    criticalError = False
+    errorsOccurred = ""
+
     Application.ScreenUpdating = False
     Application.StatusBar = "Creating Power BI integration assets..."
-    
-    ' Create metadata
+
+    ' Create metadata (non-critical)
+    On Error Resume Next
     CreatePowerBIMetadata
-    
-    ' Create scoping configuration
+    If Err.Number <> 0 Then
+        errorsOccurred = errorsOccurred & "- Metadata: " & Err.Description & vbCrLf
+        Err.Clear
+    End If
+    On Error GoTo ErrorHandler
+
+    ' Create scoping configuration (non-critical)
+    On Error Resume Next
     CreatePowerBIScopingConfig
-    
-    ' Create DAX measures guide
+    If Err.Number <> 0 Then
+        errorsOccurred = errorsOccurred & "- Scoping Config: " & Err.Description & vbCrLf
+        Err.Clear
+    End If
+    On Error GoTo ErrorHandler
+
+    ' Create DAX measures guide (non-critical)
+    On Error Resume Next
     CreateDAXMeasuresGuide
-    
-    ' Create entity scoping summary
+    If Err.Number <> 0 Then
+        errorsOccurred = errorsOccurred & "- DAX Measures: " & Err.Description & vbCrLf
+        Err.Clear
+    End If
+    On Error GoTo ErrorHandler
+
+    ' Create entity scoping summary (non-critical)
+    On Error Resume Next
     CreateEntityScopingSummary
-    
-    ' Create scoping control table for PowerBI
+    If Err.Number <> 0 Then
+        errorsOccurred = errorsOccurred & "- Entity Summary: " & Err.Description & vbCrLf
+        Err.Clear
+    End If
+    On Error GoTo ErrorHandler
+
+    ' Create scoping control table for PowerBI (CRITICAL - required for dashboard)
+    On Error Resume Next
     CreateScopingControlTable
-    
+    If Err.Number <> 0 Then
+        errorsOccurred = errorsOccurred & "- Scoping Control Table (CRITICAL): " & Err.Description & vbCrLf
+        criticalError = True
+        Err.Clear
+    End If
+    On Error GoTo ErrorHandler
+
     Application.StatusBar = False
     Application.ScreenUpdating = True
-    
-    ModConfig.ShowInfo "Power BI Assets Created", _
-        "All Power BI integration assets have been created successfully!" & vbCrLf & vbCrLf & _
-        "New sheets:" & vbCrLf & _
-        "- " & ModConfig.POWERBI_METADATA_SHEET & vbCrLf & _
-        "- " & ModConfig.POWERBI_SCOPING_SHEET & vbCrLf & _
-        "- DAX Measures Guide" & vbCrLf & _
-        "- Entity Scoping Summary" & vbCrLf & _
-        "- Scoping Control Table (for dynamic PowerBI scoping)" & vbCrLf & vbCrLf & _
-        "Import these into Power BI for enhanced scoping analysis."
-    
+
+    ' Show appropriate message based on errors
+    If criticalError Then
+        ModConfig.ShowError "Power BI Assets - Critical Error", _
+            "A critical error occurred creating the Scoping Control Table:" & vbCrLf & vbCrLf & _
+            errorsOccurred & vbCrLf & _
+            "The tool cannot continue without this table. Please check the Input Continuing tab and try again.", 0
+    ElseIf errorsOccurred <> "" Then
+        ModConfig.ShowInfo "Power BI Assets Created (with warnings)", _
+            "Power BI assets created, but some non-critical components had errors:" & vbCrLf & vbCrLf & _
+            errorsOccurred & vbCrLf & _
+            "The Scoping Control Table was created successfully and you can continue."
+    Else
+        ModConfig.ShowInfo "Power BI Assets Created", _
+            "All Power BI integration assets have been created successfully!" & vbCrLf & vbCrLf & _
+            "New sheets:" & vbCrLf & _
+            "- " & ModConfig.POWERBI_METADATA_SHEET & vbCrLf & _
+            "- " & ModConfig.POWERBI_SCOPING_SHEET & vbCrLf & _
+            "- DAX Measures Guide" & vbCrLf & _
+            "- Entity Scoping Summary" & vbCrLf & _
+            "- Scoping Control Table (for dynamic PowerBI scoping)" & vbCrLf & vbCrLf & _
+            "Import these into Power BI for enhanced scoping analysis."
+    End If
+
     Exit Sub
-    
+
 ErrorHandler:
     Application.ScreenUpdating = True
     Application.StatusBar = False
-    ModConfig.ShowError "Power BI Assets Error", "Error creating Power BI assets: " & Err.Description, Err.Number
+    ModConfig.ShowError "Power BI Assets Error", "Unexpected error creating Power BI assets: " & Err.Description, Err.Number
 End Sub
 
 ' Create Scoping Control Table for dynamic PowerBI scoping
@@ -653,6 +702,18 @@ Public Sub CreateScopingControlTable()
     Dim isConsolidated As String
     Dim packRow As Long
     Dim packLastRow As Long
+    Dim existingWs As Worksheet
+
+    ' Check if worksheet already exists and delete it
+    On Error Resume Next
+    Set existingWs = g_OutputWorkbook.Worksheets("Scoping Control Table")
+    If Not existingWs Is Nothing Then
+        Application.DisplayAlerts = False
+        existingWs.Delete
+        Application.DisplayAlerts = True
+        Set existingWs = Nothing
+    End If
+    On Error GoTo ErrorHandler
 
     ' Create worksheet
     Set ws = g_OutputWorkbook.Worksheets.Add

@@ -22,9 +22,9 @@ Public Const CAT_TRIAL_BALANCE As String = "Trial Balance"
 Public Const CAT_UNCATEGORIZED As String = "Uncategorized"
 
 ' ==================== VERSION INFORMATION ====================
-Public Const TOOL_VERSION As String = "3.1.0"
+Public Const TOOL_VERSION As String = "5.2.0"
 Public Const TOOL_NAME As String = "Bidvest Scoping Tool"
-Public Const TOOL_DATE As String = "2024-11"
+Public Const TOOL_DATE As String = "2025-11"
 
 ' ==================== PROCESSING CONSTANTS ====================
 ' Row indices for data structure

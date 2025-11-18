@@ -23,15 +23,16 @@ Public Sub StartScopingTool()
     Dim result As VbMsgBoxResult
     
     ' Display welcome message
-    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool v5.0!" & vbCrLf & vbCrLf & _
+    result = MsgBox("Welcome to the TGK Consolidation Scoping Tool v5.2!" & vbCrLf & vbCrLf & _
                     "This tool will:" & vbCrLf & _
                     "1. Analyze your TGK consolidation workbook" & vbCrLf & _
                     "2. Categorize tabs for processing" & vbCrLf & _
                     "3. Create structured tables for Power BI" & vbCrLf & _
                     "4. Process IAS 8 segment reporting (optional)" & vbCrLf & _
-                    "5. Generate scoping analysis and recommendations" & vbCrLf & vbCrLf & _
+                    "5. Generate comprehensive interactive Excel dashboards" & vbCrLf & _
+                    "6. Provide FSLI, Division, and Segment coverage analysis" & vbCrLf & vbCrLf & _
                     "Click OK to continue or Cancel to exit.", _
-                    vbOKCancel + vbInformation, "TGK Scoping Tool v5.0")
+                    vbOKCancel + vbInformation, "TGK Scoping Tool v5.2")
     
     If result = vbCancel Then Exit Sub
     
@@ -134,6 +135,11 @@ Public Sub StartScopingTool()
     ModPowerBIIntegration.CreateAllPowerBIAssets
     Application.StatusBar = False
 
+    ' Step 12b: Create comprehensive Excel dashboard - NEW in v5.1
+    Application.StatusBar = "Creating interactive Excel dashboard..."
+    ModExcelDashboard.CreateComprehensiveExcelDashboard
+    Application.StatusBar = False
+
     ' Step 12a: Process IAS 8 Segment Reporting Document (optional) - NEW in v5.0
     Application.StatusBar = "Checking for segment reporting document..."
     Dim segmentProcessed As Boolean
@@ -145,30 +151,40 @@ Public Sub StartScopingTool()
     
     ' Step 14: Display completion message
     Dim completionMsg As String
-    completionMsg = "Scoping tool v5.0 completed successfully!" & vbCrLf & vbCrLf & _
+    completionMsg = "Scoping tool v5.2 completed successfully!" & vbCrLf & vbCrLf & _
                    "Output saved as: " & g_OutputWorkbook.Name & vbCrLf & _
                    "Location: " & g_OutputWorkbook.Path & vbCrLf & vbCrLf & _
-                   "Generated assets:" & vbCrLf & _
+                   "NEW in v5.2: Production-Ready Interactive Dashboard!" & vbCrLf & _
+                   "  ✓ Executive Summary Dashboard" & vbCrLf & _
+                   "  ✓ FSLI Coverage Analysis" & vbCrLf & _
+                   "  ✓ Division × FSLI Coverage" & vbCrLf & _
+                   "  ✓ Highest Contributors (Top 100)" & vbCrLf & _
+                   "  ✓ Interactive Scoping Control (dropdowns)" & vbCrLf & _
+                   "  ✓ Real-time coverage updates" & vbCrLf & vbCrLf & _
+                   "Additional assets:" & vbCrLf & _
                    "- Data tables for analysis" & vbCrLf & _
                    "- Threshold configuration (if applied)" & vbCrLf & _
                    "- Scoping summary with recommendations" & vbCrLf & _
                    "- Division-based scoping reports" & vbCrLf & _
-                   "- Scoped In Packs Detail" & vbCrLf & _
-                   "- Interactive Excel dashboard" & vbCrLf & _
                    "- Scoping calculator" & vbCrLf & _
                    "- Power BI integration metadata" & vbCrLf
 
     ' Add segment tables message if processed
     If segmentProcessed Then
-        completionMsg = completionMsg & "- IAS 8 Segment Pack Mapping (NEW)" & vbCrLf & _
-                       "- IAS 8 Segment Summary (NEW)" & vbCrLf
+        completionMsg = completionMsg & "- IAS 8 Segment Pack Mapping" & vbCrLf & _
+                       "- IAS 8 Segment Summary" & vbCrLf
     End If
 
     completionMsg = completionMsg & vbCrLf & _
-                   "The workbook can be used standalone or with Power BI!" & vbCrLf & _
-                   "See IMPLEMENTATION_GUIDE.md for next steps."
+                   "Navigate sheets:" & vbCrLf & _
+                   "• Dashboard - Executive Summary (start here!)" & vbCrLf & _
+                   "• FSLI Coverage Analysis" & vbCrLf & _
+                   "• Division FSLI Coverage" & vbCrLf & _
+                   "• Highest Contributors" & vbCrLf & _
+                   "• Scoping Control Table (make changes here)" & vbCrLf & vbCrLf & _
+                   "See RELEASE_NOTES_V5.2.md for full details."
 
-    MsgBox completionMsg, vbInformation, "Process Complete - v5.0"
+    MsgBox completionMsg, vbInformation, "Process Complete - v5.2 Production Ready!"
     
     Exit Sub
     

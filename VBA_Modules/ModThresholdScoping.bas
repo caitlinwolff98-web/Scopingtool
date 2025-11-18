@@ -86,14 +86,26 @@ Private Function GetAvailableFSLIs() As Collection
     
     ' Get the input tab
     Set inputTab = ModTableGeneration.GetTabByCategory(ModConfig.CAT_INPUT_CONTINUING)
-    
+
     If inputTab Is Nothing Then
+        MsgBox "Error: Could not find Input Continuing tab." & vbCrLf & vbCrLf & _
+               "Please ensure the tab has been categorized correctly in the previous step.", _
+               vbCritical, "FSLI Extraction Error"
         Set GetAvailableFSLIs = fsliList
         Exit Function
     End If
-    
+
     ' Find last row
     lastRow = inputTab.Cells(inputTab.Rows.Count, 2).End(xlUp).Row
+
+    ' Debug: Check if we found any rows
+    If lastRow < 9 Then
+        MsgBox "Error: Input Continuing tab appears to be empty." & vbCrLf & vbCrLf & _
+               "Expected data starting at row 9, but last row is: " & lastRow, _
+               vbCritical, "FSLI Extraction Error"
+        Set GetAvailableFSLIs = fsliList
+        Exit Function
+    End If
     
     ' Collect unique FSLIs (excluding headers and totals for threshold selection)
     For row = 9 To lastRow
@@ -137,6 +149,18 @@ Private Function PromptUserForFSLISelection(fsliList As Collection) As Collectio
     Dim fsliName As String
     Dim selectedIndices() As String
     Dim index As Variant
+    Dim tempWs As Worksheet
+
+    ' Delete any existing temp worksheet from previous runs
+    On Error Resume Next
+    Set tempWs = g_SourceWorkbook.Worksheets("FSLI_Selection_TEMP")
+    If Not tempWs Is Nothing Then
+        Application.DisplayAlerts = False
+        tempWs.Delete
+        Application.DisplayAlerts = True
+        Set tempWs = Nothing
+    End If
+    On Error GoTo ErrorHandler
 
     ' Create temporary worksheet for FSLI selection
     Set selectionWs = g_SourceWorkbook.Worksheets.Add
