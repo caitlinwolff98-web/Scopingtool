@@ -228,6 +228,9 @@ Private Sub CreateManualScopingInterface()
     Dim amount As Variant
     Dim percentage As Variant
     Dim scopingStatus As Object  ' CRITICAL FIX: Must be Object (Dictionary) not String
+    Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
+    Dim headerRow As Long
+    Dim packNameFull As String
 
     Set scopeWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     scopeWs.Name = "Manual Scoping Interface"
@@ -335,7 +338,6 @@ Private Sub CreateManualScopingInterface()
 
         ' Loop through each pack (rows)
         For packRow = 2 To lastInputRow
-            Dim packNameFull As String
             packNameFull = fullInputWs.Cells(packRow, 1).Value
             packCode = ExtractPackCodeFromName(packNameFull)
             packName = ExtractPackNameFromFull(packNameFull)
@@ -418,6 +420,7 @@ Private Sub CreateCoverageByFSLI()
     Dim fsliRow As Long
     Dim fsli As String
     Dim fsliType As String
+    Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
 
     Set coverageWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     coverageWs.Name = "Coverage by FSLI"
@@ -590,6 +593,7 @@ Private Sub CreateCoverageByDivision()
     Dim divisions As Object
     Dim division As Variant
     Dim divisionName As String
+    Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
 
     Set divWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     divWs.Name = "Coverage by Division"
@@ -725,6 +729,7 @@ Private Sub CreateCoverageBySegment()
     Dim segments As Object
     Dim segment As Variant
     Dim segmentName As String
+    Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
 
     Set segWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     segWs.Name = "Coverage by Segment"
@@ -866,6 +871,9 @@ Private Sub CreateDetailedPackAnalysis()
     Dim segment As String
     Dim scopingStatus As String
     Dim scopingMethod As String
+    Dim tableRange As Range  ' CRITICAL FIX: Variable declaration missing
+    Dim lastCol As Long
+    Dim packScopingInfo As Object  ' CRITICAL FIX: Must be Object not Dictionary
 
     Set packWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
     packWs.Name = "Detailed Pack Analysis"
@@ -938,7 +946,6 @@ Private Sub CreateDetailedPackAnalysis()
             ' CRITICAL FIX: Calculate average percentage correctly
             ' Average across all FSLI columns (B onwards) for this pack row
             If packRow > 0 Then
-                Dim lastCol As Long
                 lastCol = percentWs.Cells(1, percentWs.Columns.Count).End(xlToLeft).Column
 
                 ' Formula: Average of row excluding column A (pack name)
@@ -951,7 +958,6 @@ Private Sub CreateDetailedPackAnalysis()
             End If
 
             ' Scoped status and method
-            Dim packScopingInfo As Dictionary
             Set packScopingInfo = GetPackScopingInfo(factScopingWs, packCode)
 
             packWs.Cells(row, 6).Value = packScopingInfo("Status")
