@@ -357,17 +357,46 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
     ' CRITICAL FIX: Update Pack Number Company Table with actual Division
     '               and Segment mappings from matching results
     '------------------------------------------------------------------------
-    On Error Resume Next
-
     Dim packTable As Worksheet
     Dim lastRow As Long
     Dim row As Long
     Dim packCode As Variant  ' CRITICAL FIX: Must be Variant for For Each loop
     Dim matchInfo As Object
+    Dim updatedCount As Long
+    Dim divisionUpdates As Long
+    Dim segmentUpdates As Long
+
+    ' CRITICAL FIX: Better error handling - check if output workbook exists
+    If Mod1_MainController.g_OutputWorkbook Is Nothing Then
+        MsgBox "CRITICAL ERROR: Output workbook not created yet!" & vbCrLf & _
+               "Pack Number Company Table cannot be updated." & vbCrLf & vbCrLf & _
+               "This should not happen - please report this bug.", _
+               vbCritical, "Workflow Error"
+        Exit Sub
+    End If
 
     ' Get Pack Number Company Table
+    On Error Resume Next
     Set packTable = Mod1_MainController.g_OutputWorkbook.Worksheets("Pack Number Company Table")
-    If packTable Is Nothing Then Exit Sub
+    On Error GoTo 0
+
+    ' CRITICAL FIX: Better error reporting if table doesn't exist
+    If packTable Is Nothing Then
+        MsgBox "CRITICAL ERROR: Pack Number Company Table worksheet not found!" & vbCrLf & _
+               "Segmental mappings cannot be applied." & vbCrLf & vbCrLf & _
+               "Expected workflow:" & vbCrLf & _
+               "1. Create Output Workbook" & vbCrLf & _
+               "2. Extract and Generate Tables" & vbCrLf & _
+               "3. Process Segmental Reporting" & vbCrLf & vbCrLf & _
+               "Please contact support if this error persists.", _
+               vbCritical, "Table Not Found"
+        Exit Sub
+    End If
+
+    ' Initialize counters
+    updatedCount = 0
+    divisionUpdates = 0
+    segmentUpdates = 0
 
     ' Find data range
     lastRow = packTable.Cells(packTable.Rows.Count, 2).End(xlUp).row
@@ -383,11 +412,18 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
             ' Update Division (Column 3)
             If matchInfo("Division") <> "Not Mapped" Then
                 packTable.Cells(row, 3).Value = matchInfo("Division")
+                divisionUpdates = divisionUpdates + 1
             End If
 
             ' Update Segment (Column 4)
             If matchInfo("Segment") <> "Not Mapped" Then
                 packTable.Cells(row, 4).Value = matchInfo("Segment")
+                segmentUpdates = segmentUpdates + 1
+            End If
+
+            ' Count if any update was made
+            If matchInfo("Division") <> "Not Mapped" Or matchInfo("Segment") <> "Not Mapped" Then
+                updatedCount = updatedCount + 1
             End If
         End If
     Next row
@@ -400,7 +436,22 @@ Private Sub UpdatePackCompanyTableWithMappings(matchResults As Object)
         End If
     Next packCode
 
-    On Error GoTo 0
+    ' CRITICAL FIX: Report update results to user
+    If updatedCount = 0 Then
+        MsgBox "WARNING: No packs were updated with segment/division information!" & vbCrLf & vbCrLf & _
+               "Possible causes:" & vbCrLf & _
+               "- No matching pack codes between Stripe and Segmental workbooks" & vbCrLf & _
+               "- Fuzzy matching threshold too strict (70%)" & vbCrLf & _
+               "- Pack code format mismatch" & vbCrLf & vbCrLf & _
+               "Check 'Pack Matching Report' for details.", _
+               vbExclamation, "No Segments Updated"
+    Else
+        ' Success message with statistics
+        Debug.Print "Pack Company Table Update Results:"
+        Debug.Print "  Total packs updated: " & updatedCount
+        Debug.Print "  Division updates: " & divisionUpdates
+        Debug.Print "  Segment updates: " & segmentUpdates
+    End If
 End Sub
 
 ' ==================== FUZZY MATCHING ====================

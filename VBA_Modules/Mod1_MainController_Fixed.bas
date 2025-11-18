@@ -105,20 +105,21 @@ Public Sub StartBidvestScopingTool()
         Exit Sub
     End If
 
-    ' PART 6: SEGMENTAL REPORTING WORKBOOK (OPTIONAL)
-    Application.StatusBar = "Step 6/12: Processing segmental reporting..."
-    ProcessSegmentalReporting ' Optional - continues even if cancelled
-
-    ' PART 7: CREATE OUTPUT WORKBOOK
-    Application.StatusBar = "Step 7/12: Creating output workbook..."
+    ' PART 6: CREATE OUTPUT WORKBOOK
+    Application.StatusBar = "Step 6/12: Creating output workbook..."
     CreateOutputWorkbook
 
-    ' PART 8: EXTRACT AND GENERATE TABLES
+    ' PART 7: EXTRACT AND GENERATE TABLES
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
 
-    Application.StatusBar = "Step 8/12: Extracting data and generating tables..."
+    Application.StatusBar = "Step 7/12: Extracting data and generating tables..."
     ExtractAndGenerateTables
+
+    ' PART 8: SEGMENTAL REPORTING WORKBOOK (OPTIONAL)
+    ' CRITICAL FIX: Moved AFTER table creation so Pack Number Company Table exists
+    Application.StatusBar = "Step 8/12: Processing segmental reporting..."
+    ProcessSegmentalReporting ' Optional - continues even if cancelled
 
     ' PART 9: THRESHOLD CONFIGURATION (OPTIONAL)
     Application.StatusBar = "Step 9/12: Configuring thresholds..."
