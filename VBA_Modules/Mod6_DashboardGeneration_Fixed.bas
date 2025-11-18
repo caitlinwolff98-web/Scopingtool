@@ -301,7 +301,6 @@ Private Sub CreateManualScopingInterface()
     row = row + 2
 
     ' Create table headers
-    Dim headerRow As Long
     headerRow = row
 
     scopeWs.Cells(headerRow, 1).Value = "Pack Code"
