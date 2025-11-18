@@ -384,7 +384,6 @@ Private Sub CreateManualScopingInterface()
 
     ' Convert to Excel Table
     If row > headerRow + 1 Then
-        Dim tableRange As Range
         Set tableRange = scopeWs.Range(scopeWs.Cells(headerRow, 1), scopeWs.Cells(row - 1, 10))
         On Error Resume Next
         scopeWs.ListObjects.Add xlSrcRange, tableRange, , xlYes
