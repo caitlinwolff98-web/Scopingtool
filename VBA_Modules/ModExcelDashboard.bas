@@ -837,7 +837,7 @@ Private Sub CreateInteractiveWorksheet()
     Dim ws As Worksheet
     Dim scopingTbl As ListObject
     Dim contributorsDict As Object
-    Dim packKey As String
+    Dim packKey As Variant  ' Changed from String to Variant for dictionary iteration
     Dim row As Long, dataRow As Long
     Dim tbl As ListObject
     Dim grandTotal As Double
