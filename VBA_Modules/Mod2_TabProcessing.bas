@@ -144,20 +144,18 @@ Private Function PromptForCategory(tabName As String, currentTab As Long, totalT
             userInput = "9" ' Default to Uncategorized if blank
         End If
 
-        If Not IsNumeric(userInput) Then
+        If IsNumeric(userInput) Then
+            categoryNumber = CLng(userInput)
+
+            If categoryNumber >= 1 And categoryNumber <= 9 Then
+                ' Valid category selected
+                Exit Do
+            Else
+                MsgBox "Invalid category number. Please enter 1-9.", vbExclamation
+            End If
+        Else
             MsgBox "Invalid input. Please enter a number from 1-9.", vbExclamation
-            Continue Do
         End If
-
-        categoryNumber = CLng(userInput)
-
-        If categoryNumber < 1 Or categoryNumber > 9 Then
-            MsgBox "Invalid category number. Please enter 1-9.", vbExclamation
-            Continue Do
-        End If
-
-        ' Valid category selected
-        Exit Do
     Loop
 
     ' Return category name based on number
