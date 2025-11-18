@@ -96,7 +96,7 @@ Private Sub CreateDashboardOverview()
     ' Total Packs
     dashWs.Cells(row, 1).Value = "Total Packs:"
     dashWs.Cells(row, 1).Font.Bold = True
-    dashWs.Cells(row, 2).Formula = "=COUNTA('Pack Number Company Table'[Pack Code])"
+    dashWs.Cells(row, 2).Formula = "=COUNTA([PackNumberCompanyTable][Pack Code])"
     dashWs.Cells(row, 2).Font.Size = 14
     dashWs.Cells(row, 2).NumberFormat = "0"
     row = row + 1
@@ -133,7 +133,7 @@ Private Sub CreateDashboardOverview()
     ' Total FSLIs
     dashWs.Cells(row, 1).Value = "Total FSLIs:"
     dashWs.Cells(row, 1).Font.Bold = True
-    dashWs.Cells(row, 2).Formula = "=COUNTA('Dim FSLIs'[FSLI Name])"
+    dashWs.Cells(row, 2).Formula = "=COUNTA([DimFSLIs][FSLI Name])"
     dashWs.Cells(row, 2).Font.Size = 12
     dashWs.Cells(row, 2).NumberFormat = "0"
     row = row + 1
@@ -141,7 +141,7 @@ Private Sub CreateDashboardOverview()
     ' Threshold FSLIs
     dashWs.Cells(row, 1).Value = "Threshold FSLIs Used:"
     dashWs.Cells(row, 1).Font.Bold = True
-    dashWs.Cells(row, 2).Formula = "=IF(ISREF('Dim Thresholds'!A:A),COUNTA('Dim Thresholds'[FSLI]),0)"
+    dashWs.Cells(row, 2).Formula = "=IF(ISREF('Dim Thresholds'!A:A),COUNTA([DimThresholds][FSLI]),0)"
     dashWs.Cells(row, 2).Font.Size = 12
     dashWs.Cells(row, 2).NumberFormat = "0"
     row = row + 3
@@ -457,7 +457,7 @@ Private Sub CreateCoverageByFSLI()
 
     coverageWs.Cells(row, 1).Value = "Total FSLIs:"
     coverageWs.Cells(row, 1).Font.Bold = True
-    coverageWs.Cells(row, 2).Formula = "=COUNTA('Dim FSLIs'[FSLI Name])"
+    coverageWs.Cells(row, 2).Formula = "=COUNTA([DimFSLIs][FSLI Name])"
     coverageWs.Cells(row, 2).NumberFormat = "0"
     row = row + 1
 
@@ -526,7 +526,7 @@ Private Sub CreateCoverageByFSLI()
             Dim fsliColNum As Long
             fsliColNum = FindFSLIColumnInTable(fullInputWs, fsli)
             If fsliColNum > 0 Then
-                coverageWs.Cells(row, 3).Formula = "=SUM('Full Input Table'[" & fsli & "])"
+                coverageWs.Cells(row, 3).Formula = "=SUM([FullInputTable][" & fsli & "])"
             Else
                 coverageWs.Cells(row, 3).Value = 0
             End If
@@ -635,7 +635,7 @@ Private Sub CreateCoverageByDivision()
 
     divWs.Cells(row, 1).Value = "Total Divisions:"
     divWs.Cells(row, 1).Font.Bold = True
-    divWs.Cells(row, 2).Formula = "=COUNTA(UNIQUE('Pack Number Company Table'[Division]))"
+    divWs.Cells(row, 2).Formula = "=COUNTA(UNIQUE([PackNumberCompanyTable][Division]))"
     divWs.Cells(row, 2).NumberFormat = "0"
     row = row + 3
 
@@ -680,7 +680,7 @@ Private Sub CreateCoverageByDivision()
             divWs.Cells(row, 1).Value = divisionName
 
             ' Total Packs in this division
-            divWs.Cells(row, 2).Formula = "=COUNTIF('Pack Number Company Table'[Division],""" & divisionName & """)"
+            divWs.Cells(row, 2).Formula = "=COUNTIF([PackNumberCompanyTable][Division],""" & divisionName & """)"
             divWs.Cells(row, 2).NumberFormat = "0"
 
             ' Scoped Packs (unique pack codes in Fact Scoping that are scoped in and belong to this division)
@@ -774,7 +774,7 @@ Private Sub CreateCoverageBySegment()
 
     segWs.Cells(row, 1).Value = "Total Segments:"
     segWs.Cells(row, 1).Font.Bold = True
-    segWs.Cells(row, 2).Formula = "=COUNTA(UNIQUE('Pack Number Company Table'[Segment]))"
+    segWs.Cells(row, 2).Formula = "=COUNTA(UNIQUE([PackNumberCompanyTable][Segment]))"
     segWs.Cells(row, 2).NumberFormat = "0"
     row = row + 3
 
@@ -819,7 +819,7 @@ Private Sub CreateCoverageBySegment()
             segWs.Cells(row, 1).Value = segmentName
 
             ' Total Packs in this segment
-            segWs.Cells(row, 2).Formula = "=COUNTIF('Pack Number Company Table'[Segment],""" & segmentName & """)"
+            segWs.Cells(row, 2).Formula = "=COUNTIF([PackNumberCompanyTable][Segment],""" & segmentName & """)"
             segWs.Cells(row, 2).NumberFormat = "0"
 
             ' Scoped Packs
