@@ -98,10 +98,12 @@ Private Sub CreateDashboardOverview()
     dashWs.Cells(row, 2).NumberFormat = "0"
     row = row + 1
 
-    ' Packs Scoped In
+    ' Packs Scoped In - Calculate in VBA to avoid complex formula errors
     dashWs.Cells(row, 1).Value = "Packs Scoped In:"
     dashWs.Cells(row, 1).Font.Bold = True
-    dashWs.Cells(row, 2).Formula = "=SUMPRODUCT((COUNTIF('Fact Scoping'[PackCode],'Pack Number Company Table'[Pack Code])>0)*1)"
+    Dim scopedPackCount As Long
+    scopedPackCount = CountScopedPacks()
+    dashWs.Cells(row, 2).Value = scopedPackCount
     dashWs.Cells(row, 2).Font.Size = 14
     dashWs.Cells(row, 2).NumberFormat = "0"
     dashWs.Cells(row, 2).Interior.Color = RGB(198, 239, 206)
@@ -521,8 +523,10 @@ Private Sub CreateCoverageByFSLI()
             End If
             coverageWs.Cells(row, 3).NumberFormat = "#,##0.00"
 
-            ' Scoped Amount - Sum where Scoping Status = "Scoped In"
-            coverageWs.Cells(row, 4).Formula = "=SUMIF('Fact Scoping'[FSLI],""" & fsli & """,'Fact Scoping'[ScopingStatus],""Scoped In"")"
+            ' Scoped Amount - Calculate in VBA (can't use simple formula for this)
+            Dim scopedAmount As Double
+            scopedAmount = CalculateScopedAmountForFSLI(factScopingWs, fullInputWs, fsli)
+            coverageWs.Cells(row, 4).Value = scopedAmount
             coverageWs.Cells(row, 4).NumberFormat = "#,##0.00"
 
             ' Coverage % - Scoped Amount / Total Amount
@@ -1295,6 +1299,108 @@ Private Function GetPackScopingInfo(factWs As Worksheet, packCode As String) As 
     Next row
 
     Set GetPackScopingInfo = result
+End Function
+
+Private Function CalculateScopedAmountForFSLI(factWs As Worksheet, fullInputWs As Worksheet, fsli As String) As Double
+    '------------------------------------------------------------------------
+    ' Calculate total scoped amount for a specific FSLI
+    ' Sums amounts from Full Input Table for packs that are scoped in
+    '------------------------------------------------------------------------
+    Dim total As Double
+    Dim lastRow As Long
+    Dim row As Long
+    Dim packCode As String
+    Dim packNameFull As String
+    Dim fsliCol As Long
+    Dim amount As Variant
+
+    total = 0
+
+    If factWs Is Nothing Or fullInputWs Is Nothing Then
+        CalculateScopedAmountForFSLI = 0
+        Exit Function
+    End If
+
+    ' Find FSLI column in Full Input Table
+    fsliCol = FindFSLIColumnInTable(fullInputWs, fsli)
+    If fsliCol = 0 Then
+        CalculateScopedAmountForFSLI = 0
+        Exit Function
+    End If
+
+    ' Loop through Full Input Table rows (each pack)
+    lastRow = fullInputWs.Cells(fullInputWs.Rows.Count, 1).End(xlUp).row
+
+    For row = 2 To lastRow
+        packNameFull = fullInputWs.Cells(row, 1).Value
+        packCode = ExtractPackCodeFromName(packNameFull)
+
+        ' Check if this pack is scoped in for this FSLI
+        If IsPackScopedForFSLI(factWs, packCode, fsli) Then
+            amount = fullInputWs.Cells(row, fsliCol).Value
+            If IsNumeric(amount) Then
+                total = total + CDbl(amount)
+            End If
+        End If
+    Next row
+
+    CalculateScopedAmountForFSLI = total
+End Function
+
+Private Function IsPackScopedForFSLI(factWs As Worksheet, packCode As String, fsli As String) As Boolean
+    '------------------------------------------------------------------------
+    ' Check if a pack is scoped in for a specific FSLI
+    '------------------------------------------------------------------------
+    Dim lastRow As Long
+    Dim row As Long
+
+    IsPackScopedForFSLI = False
+
+    If factWs Is Nothing Then Exit Function
+
+    lastRow = factWs.Cells(factWs.Rows.Count, 1).End(xlUp).row
+
+    For row = 2 To lastRow
+        If factWs.Cells(row, 1).Value = packCode And factWs.Cells(row, 3).Value = fsli Then
+            If factWs.Cells(row, 4).Value = "Scoped In" Then
+                IsPackScopedForFSLI = True
+                Exit Function
+            End If
+        End If
+    Next row
+End Function
+
+Private Function CountScopedPacks() As Long
+    '------------------------------------------------------------------------
+    ' Count unique packs that are scoped in
+    '------------------------------------------------------------------------
+    Dim factWs As Worksheet
+    Dim scopedPacks As Object
+    Dim lastRow As Long
+    Dim row As Long
+    Dim packCode As String
+
+    CountScopedPacks = 0
+
+    On Error Resume Next
+    Set factWs = Mod1_MainController.g_OutputWorkbook.Worksheets("Fact Scoping")
+    On Error GoTo 0
+
+    If factWs Is Nothing Then Exit Function
+
+    Set scopedPacks = CreateObject("Scripting.Dictionary")
+    lastRow = factWs.Cells(factWs.Rows.Count, 1).End(xlUp).row
+
+    For row = 2 To lastRow
+        If factWs.Cells(row, 4).Value = "Scoped In" Then
+            packCode = factWs.Cells(row, 1).Value
+            If Not scopedPacks.exists(packCode) Then
+                scopedPacks(packCode) = True
+            End If
+        End If
+    Next row
+
+    CountScopedPacks = scopedPacks.Count
 End Function
 
 Private Sub AddDashboardLink(ws As Worksheet, row As Long, col As Long, displayText As String, sheetName As String)

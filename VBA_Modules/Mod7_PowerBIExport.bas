@@ -81,8 +81,8 @@ Private Sub CreateDimPacks()
             dimWs.Cells(row, 1).Value = sourceWs.Cells(srcRow, 2).Value ' Pack Code
             dimWs.Cells(row, 2).Value = sourceWs.Cells(srcRow, 1).Value ' Pack Name
             dimWs.Cells(row, 3).Value = sourceWs.Cells(srcRow, 3).Value ' Division
-            dimWs.Cells(row, 4).Value = "" ' Segment (from mapping table)
-            dimWs.Cells(row, 5).Value = sourceWs.Cells(srcRow, 4).Value ' Is Consolidated
+            dimWs.Cells(row, 4).Value = sourceWs.Cells(srcRow, 4).Value ' Segment - FIXED: was empty
+            dimWs.Cells(row, 5).Value = sourceWs.Cells(srcRow, 5).Value ' Is Consolidated - FIXED: was col 4
 
             row = row + 1
         Next srcRow
