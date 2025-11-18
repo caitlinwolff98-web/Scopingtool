@@ -245,7 +245,7 @@ Private Function PerformPackMatching(stripePacks As Object, segmentPacks As Obje
             Dim bestMatch As String
             Dim bestSimilarity As Double
 
-            bestMatch = FindBestFuzzyMatch(stripeCode, stripePacks(stripeCode)("Name"), segmentPacks, bestSimilarity)
+            bestMatch = FindBestFuzzyMatch(CStr(stripeCode), stripePacks(stripeCode)("Name"), segmentPacks, bestSimilarity)
 
             If bestMatch <> "" And bestSimilarity >= 70 Then ' 70% similarity threshold
                 Set matchInfo = CreateObject("Scripting.Dictionary")
