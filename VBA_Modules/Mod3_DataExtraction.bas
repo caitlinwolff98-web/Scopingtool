@@ -4,18 +4,95 @@ Option Explicit
 ' ============================================================================
 ' MODULE 3: DATA EXTRACTION & TABLE GENERATION
 ' ISA 600 Revised Component Scoping Tool - Bidvest Group
-' Version: 6.0 - Complete Overhaul
+' Version: 6.1 - Enhanced with FSLI Type Detection and Formula-Driven Tables
 ' ============================================================================
-' PURPOSE: Extract financial data and generate structured tables
+' PURPOSE: Extract financial data and generate structured Excel Tables
 ' DESCRIPTION: Processes Input Continuing, Discontinued, Journals, and Consol
-'              tabs to create data tables and percentage tables
+'              tabs to create data tables with formula-driven percentages
+'              and automatic FSLI type detection (Income Statement vs Balance Sheet)
 ' ============================================================================
+
+' ==================== MODULE-LEVEL VARIABLES ====================
+Private m_FSLITypes As Object ' Dictionary: FSLI -> Type (Income Statement / Balance Sheet)
 
 ' ==================== ROW CONSTANTS ====================
 Private Const ROW_CURRENCY_TYPE As Long = 6    ' Row containing currency type identifiers
 Private Const ROW_PACK_NAME As Long = 7        ' Row containing pack/entity names
 Private Const ROW_PACK_CODE As Long = 8        ' Row containing pack/entity codes
 Private Const ROW_FSLI_START As Long = 9       ' First row of FSLI data
+
+' ==================== GET FSLI TYPES ====================
+Public Function GetFSLITypes() As Object
+    '------------------------------------------------------------------------
+    ' Return the FSLI types dictionary (Income Statement vs Balance Sheet)
+    ' Must call ExtractFSLITypesFromInput first
+    '------------------------------------------------------------------------
+    If m_FSLITypes Is Nothing Then
+        Set m_FSLITypes = CreateObject("Scripting.Dictionary")
+    End If
+    Set GetFSLITypes = m_FSLITypes
+End Function
+
+' ==================== EXTRACT FSLI TYPES ====================
+Public Sub ExtractFSLITypesFromInput(tabCategories As Object)
+    '------------------------------------------------------------------------
+    ' Scan Input Continuing Column B to identify FSLI types
+    ' Detects "INCOME STATEMENT" and "BALANCE SHEET" headers
+    ' Maps each FSLI to its statement type
+    '------------------------------------------------------------------------
+    On Error GoTo ErrorHandler
+
+    Dim inputTab As Worksheet
+    Dim row As Long
+    Dim lastRow As Long
+    Dim cellValue As String
+    Dim currentType As String
+    Dim fsliValue As String
+
+    Set m_FSLITypes = CreateObject("Scripting.Dictionary")
+    currentType = "Unknown"
+
+    ' Get Input Continuing tab
+    Set inputTab = Mod2_TabProcessing.GetTabByCategory(tabCategories, "Input Continuing")
+    If inputTab Is Nothing Then Exit Sub
+
+    ' Find last row in Column B
+    lastRow = inputTab.Cells(inputTab.Rows.Count, 2).End(xlUp).row
+
+    ' Scan Column B to detect statement headers and categorize FSLIs
+    For row = ROW_FSLI_START To lastRow
+        cellValue = Trim(inputTab.Cells(row, 2).Value)
+
+        ' Stop at Notes
+        If UCase(cellValue) = "NOTES" Then Exit For
+
+        ' Skip empty rows
+        If cellValue = "" Then GoTo NextRow
+
+        ' Check for statement headers
+        If IsIncomeStatementHeader(cellValue) Then
+            currentType = "Income Statement"
+            GoTo NextRow
+        End If
+
+        If IsBalanceSheetHeader(cellValue) Then
+            currentType = "Balance Sheet"
+            GoTo NextRow
+        End If
+
+        ' If this is a valid FSLI (not a header), store its type
+        If Not IsStatementHeader(cellValue) Then
+            m_FSLITypes(cellValue) = currentType
+        End If
+
+NextRow:
+    Next row
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "Error extracting FSLI types: " & Err.Description
+End Sub
 
 ' ==================== GET ALL ENTITIES ====================
 Public Function GetAllEntitiesFromInputContinuing(tabCategories As Object, useConsolCurrency As Boolean) As Object
@@ -73,16 +150,16 @@ End Function
 Public Sub GenerateFullInputTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
     '------------------------------------------------------------------------
     ' Generate Full Input Table and Full Input Percentage Table
+    ' Creates proper Excel Tables with formula-driven percentages
     '------------------------------------------------------------------------
     On Error GoTo ErrorHandler
 
-    Application.StatusBar = "Generating Full Input Table..."
+    Application.StatusBar = "Generating Full Input Tables..."
+    Application.ScreenUpdating = False
 
     Dim inputTab As Worksheet
     Dim outputWs As Worksheet
     Dim percentWs As Worksheet
-    Dim lastCol As Long
-    Dim lastRow As Long
     Dim fslis As Collection
     Dim packs As Object
     Dim outRow As Long
@@ -91,6 +168,9 @@ Public Sub GenerateFullInputTables(tabCategories As Object, useConsolCurrency As
     ' Get Input Continuing tab
     Set inputTab = Mod2_TabProcessing.GetTabByCategory(tabCategories, "Input Continuing")
     If inputTab Is Nothing Then Exit Sub
+
+    ' Extract FSLI types first
+    ExtractFSLITypesFromInput tabCategories
 
     ' Create output worksheets
     Set outputWs = Mod1_MainController.g_OutputWorkbook.Worksheets.Add
@@ -106,6 +186,9 @@ Public Sub GenerateFullInputTables(tabCategories As Object, useConsolCurrency As
     Set packs = ExtractPacks(inputTab, useConsolCurrency)
 
     ' Write headers - Row 1: FSLIs, Column A: Packs
+    outputWs.Cells(1, 1).Value = "Pack Name (Code)"
+    percentWs.Cells(1, 1).Value = "Pack Name (Code)"
+
     outCol = 2 ' Column B onwards for FSLIs
     Dim fsli As Variant
     For Each fsli In fslis
@@ -126,19 +209,75 @@ Public Sub GenerateFullInputTables(tabCategories As Object, useConsolCurrency As
     ' Extract amounts and populate table
     PopulateAmountTable outputWs, inputTab, fslis, packs, useConsolCurrency
 
-    ' Calculate percentages based on consolidation entity
-    CalculatePercentageTable percentWs, outputWs, consolEntity
+    ' Create formula-driven percentage table
+    CreateFormulaDrivenPercentageTable percentWs, outputWs, consolEntity, fslis.Count, packs.Count
+
+    ' Convert to proper Excel Tables
+    ConvertToExcelTable outputWs, "FullInputTable"
+    ConvertToExcelTable percentWs, "FullInputPercentageTable"
 
     ' Format tables
     FormatTable outputWs
     FormatTable percentWs
 
+    Application.ScreenUpdating = True
     Application.StatusBar = False
+
     Exit Sub
 
 ErrorHandler:
+    Application.ScreenUpdating = True
     Application.StatusBar = False
-    Debug.Print "Error generating Full Input Tables: " & Err.Description
+    MsgBox "Error generating Full Input Tables: " & Err.Description, vbCritical
+End Sub
+
+' ==================== CREATE FORMULA-DRIVEN PERCENTAGE TABLE ====================
+Private Sub CreateFormulaDrivenPercentageTable(percentWs As Worksheet, amountWs As Worksheet, _
+                                               consolEntity As String, fsliCount As Long, packCount As Long)
+    '------------------------------------------------------------------------
+    ' Create formula-driven percentage table that references amount table
+    ' Formulas automatically update when amounts change
+    '------------------------------------------------------------------------
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim row As Long
+    Dim col As Long
+    Dim consolRow As Long
+    Dim packName As String
+    Dim amountTableName As String
+    Dim formula As String
+
+    ' Get table dimensions
+    lastRow = packCount + 1 ' +1 for header row
+    lastCol = fsliCount + 1 ' +1 for pack name column
+
+    ' Find consolidation entity row
+    For row = 2 To lastRow
+        packName = percentWs.Cells(row, 1).Value
+        If InStr(packName, consolEntity) > 0 Then
+            consolRow = row
+            Exit For
+        End If
+    Next row
+
+    If consolRow = 0 Then
+        MsgBox "Warning: Consolidation entity not found. Percentages may be incorrect.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Build formulas for each cell
+    For row = 2 To lastRow
+        For col = 2 To lastCol
+            ' Formula: =IF('Full Input Table'!ConsolRow<>0, 'Full Input Table'!CurrentRow/'Full Input Table'!ConsolRow, 0)
+            formula = "=IFERROR(" & _
+                     "'" & amountWs.Name & "'!" & Cells(row, col).Address & "/" & _
+                     "'" & amountWs.Name & "'!" & Cells(consolRow, col).Address & _
+                     ",0)"
+
+            percentWs.Cells(row, col).formula = formula
+            percentWs.Cells(row, col).NumberFormat = "0.00%"
+        Next col
+    Next row
 End Sub
 
 ' ==================== EXTRACT FSLIs ====================
@@ -261,96 +400,16 @@ Private Sub PopulateAmountTable(outputWs As Worksheet, sourceWs As Worksheet, _
     Next packCode
 End Sub
 
-' ==================== CALCULATE PERCENTAGE TABLE ====================
-Private Sub CalculatePercentageTable(percentWs As Worksheet, amountWs As Worksheet, consolEntity As String)
-    '------------------------------------------------------------------------
-    ' Calculate percentages based on consolidation entity (100% baseline)
-    '------------------------------------------------------------------------
-    Dim lastRow As Long
-    Dim lastCol As Long
-    Dim row As Long
-    Dim col As Long
-    Dim consolRow As Long
-    Dim packName As String
-    Dim baselineAmount As Double
-    Dim packAmount As Double
-    Dim percentage As Double
-
-    ' Find consolidation entity row in amount table
-    lastRow = amountWs.Cells(amountWs.Rows.Count, 1).End(xlUp).row
-    lastCol = amountWs.Cells(1, amountWs.Columns.Count).End(xlToLeft).Column
-
-    For row = 2 To lastRow
-        packName = amountWs.Cells(row, 1).Value
-        If InStr(packName, consolEntity) > 0 Then
-            consolRow = row
-            Exit For
-        End If
-    Next row
-
-    If consolRow = 0 Then Exit Sub ' Consolidation entity not found
-
-    ' Calculate percentages for each cell
-    For row = 2 To lastRow
-        For col = 2 To lastCol
-            baselineAmount = 0
-            packAmount = 0
-
-            If IsNumeric(amountWs.Cells(consolRow, col).Value) Then
-                baselineAmount = CDbl(amountWs.Cells(consolRow, col).Value)
-            End If
-
-            If IsNumeric(amountWs.Cells(row, col).Value) Then
-                packAmount = CDbl(amountWs.Cells(row, col).Value)
-            End If
-
-            If baselineAmount <> 0 Then
-                percentage = (packAmount / baselineAmount) * 100
-                percentWs.Cells(row, col).Value = percentage
-                percentWs.Cells(row, col).NumberFormat = "0.00%"
-            Else
-                percentWs.Cells(row, col).Value = "N/A"
-            End If
-        Next col
-    Next row
-
-    ' Mark consolidation entity row as 100% for all FSLIs
-    For col = 2 To lastCol
-        percentWs.Cells(consolRow, col).Value = 1 ' 100%
-        percentWs.Cells(consolRow, col).NumberFormat = "0.00%"
-    Next col
-End Sub
-
-' ==================== GENERATE OTHER TABLES ====================
-Public Sub GenerateDiscontinuedTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
-    ' Similar to GenerateFullInputTables but for Discontinued Operations tab
-    ' Implementation follows same pattern
-End Sub
-
-Public Sub GenerateJournalsTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
-    ' Similar to GenerateFullInputTables but for Journals Continuing tab
-    ' Implementation follows same pattern
-End Sub
-
-Public Sub GenerateConsolTables(tabCategories As Object, useConsolCurrency As Boolean, consolEntity As String)
-    ' Similar to GenerateFullInputTables but for Consol Continuing tab
-    ' Implementation follows same pattern
-End Sub
-
-' ==================== GENERATE REFERENCE TABLES ====================
-Public Sub GenerateFSLiKeyTable(tabCategories As Object)
-    '------------------------------------------------------------------------
-    ' Generate FSLi Key Table with all unique FSLIs and metadata
-    '------------------------------------------------------------------------
-    ' Implementation: Extract all FSLIs with metadata (type, hierarchy, etc.)
-End Sub
-
+' ==================== GENERATE PACK COMPANY TABLE ====================
 Public Sub GeneratePackCompanyTable(tabCategories As Object, divisionNames As Object, consolEntity As String)
     '------------------------------------------------------------------------
     ' Generate Pack Number Company Table with pack master data
-    ' Includes: Pack Name, Pack Code, Division, Is Consolidated flag
+    ' Includes: Pack Name, Pack Code, Division, Segment, Is Consolidated flag
+    ' Creates proper Excel Table for Power BI
     '------------------------------------------------------------------------
     On Error GoTo ErrorHandler
+
+    Application.StatusBar = "Creating Pack Number Company Table..."
 
     Dim outputWs As Worksheet
     Dim inputTab As Worksheet
@@ -368,16 +427,20 @@ Public Sub GeneratePackCompanyTable(tabCategories As Object, divisionNames As Ob
     outputWs.Cells(1, 1).Value = "Pack Name"
     outputWs.Cells(1, 2).Value = "Pack Code"
     outputWs.Cells(1, 3).Value = "Division"
-    outputWs.Cells(1, 4).Value = "Is Consolidated"
+    outputWs.Cells(1, 4).Value = "Segment"
+    outputWs.Cells(1, 5).Value = "Is Consolidated"
 
     ' Format headers
-    outputWs.Range("A1:D1").Font.Bold = True
-    outputWs.Range("A1:D1").Interior.Color = RGB(68, 114, 196)
-    outputWs.Range("A1:D1").Font.Color = RGB(255, 255, 255)
+    With outputWs.Range("A1:E1")
+        .Font.Bold = True
+        .Interior.Color = RGB(68, 114, 196)
+        .Font.Color = RGB(255, 255, 255)
+        .HorizontalAlignment = xlCenter
+    End With
 
     row = 2
 
-    ' Extract pack data
+    ' Extract pack data from Input Continuing
     Set inputTab = Mod2_TabProcessing.GetTabByCategory(tabCategories, "Input Continuing")
     If Not inputTab Is Nothing Then
         lastCol = inputTab.Cells(ROW_PACK_NAME, inputTab.Columns.Count).End(xlToLeft).Column
@@ -390,18 +453,61 @@ Public Sub GeneratePackCompanyTable(tabCategories As Object, divisionNames As Ob
                 outputWs.Cells(row, 1).Value = packName
                 outputWs.Cells(row, 2).Value = packCode
                 outputWs.Cells(row, 3).Value = "To Be Mapped" ' Will be updated by segmental matching
-                outputWs.Cells(row, 4).Value = IIf(packCode = consolEntity, "Yes", "No")
+                outputWs.Cells(row, 4).Value = "To Be Mapped" ' Will be updated by segmental matching
+                outputWs.Cells(row, 5).Value = IIf(packCode = consolEntity, "Yes", "No")
                 row = row + 1
             End If
         Next col
     End If
 
+    ' Convert to Excel Table
+    If row > 2 Then ' Only if we have data
+        ConvertToExcelTable outputWs, "PackNumberCompanyTable"
+    End If
+
     outputWs.Columns.AutoFit
+    Application.StatusBar = False
 
     Exit Sub
 
 ErrorHandler:
-    Debug.Print "Error generating Pack Company Table: " & Err.Description
+    Application.StatusBar = False
+    MsgBox "Error generating Pack Company Table: " & Err.Description, vbCritical
+End Sub
+
+' ==================== CONVERT TO EXCEL TABLE ====================
+Private Sub ConvertToExcelTable(ws As Worksheet, tableName As String)
+    '------------------------------------------------------------------------
+    ' Convert range to proper Excel Table (ListObject)
+    '------------------------------------------------------------------------
+    On Error Resume Next
+
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim tableRange As Range
+    Dim existingTable As ListObject
+
+    ' Delete existing table with same name if it exists
+    For Each existingTable In ws.ListObjects
+        If existingTable.Name = tableName Then
+            existingTable.Delete
+        End If
+    Next existingTable
+
+    ' Find data range
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).row
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    If lastRow < 2 Or lastCol < 1 Then Exit Sub ' No data
+
+    Set tableRange = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol))
+
+    ' Create ListObject
+    ws.ListObjects.Add xlSrcRange, tableRange, , xlYes
+    ws.ListObjects(ws.ListObjects.Count).Name = tableName
+    ws.ListObjects(tableName).TableStyle = "TableStyleMedium2"
+
+    On Error GoTo 0
 End Sub
 
 ' ==================== HELPER FUNCTIONS ====================
@@ -419,10 +525,32 @@ Private Function IsStatementHeader(fsliValue As String) As Boolean
     Dim upperValue As String
     upperValue = UCase(Trim(fsliValue))
 
-    IsStatementHeader = (upperValue = "INCOME STATEMENT" Or _
-                        upperValue = "BALANCE SHEET" Or _
-                        upperValue = "STATEMENT OF COMPREHENSIVE INCOME" Or _
-                        upperValue = "STATEMENT OF FINANCIAL POSITION")
+    IsStatementHeader = IsIncomeStatementHeader(fsliValue) Or IsBalanceSheetHeader(fsliValue)
+End Function
+
+Private Function IsIncomeStatementHeader(fsliValue As String) As Boolean
+    '------------------------------------------------------------------------
+    ' Check if value is an Income Statement header
+    '------------------------------------------------------------------------
+    Dim upperValue As String
+    upperValue = UCase(Trim(fsliValue))
+
+    IsIncomeStatementHeader = (upperValue = "INCOME STATEMENT" Or _
+                               upperValue = "STATEMENT OF COMPREHENSIVE INCOME" Or _
+                               upperValue = "PROFIT OR LOSS" Or _
+                               InStr(upperValue, "INCOME STATEMENT") > 0)
+End Function
+
+Private Function IsBalanceSheetHeader(fsliValue As String) As Boolean
+    '------------------------------------------------------------------------
+    ' Check if value is a Balance Sheet header
+    '------------------------------------------------------------------------
+    Dim upperValue As String
+    upperValue = UCase(Trim(fsliValue))
+
+    IsBalanceSheetHeader = (upperValue = "BALANCE SHEET" Or _
+                            upperValue = "STATEMENT OF FINANCIAL POSITION" Or _
+                            InStr(upperValue, "BALANCE SHEET") > 0)
 End Function
 
 Private Function FindPackColumn(ws As Worksheet, packCode As String, useConsolCurrency As Boolean) As Long
@@ -480,10 +608,15 @@ Private Sub FormatTable(ws As Worksheet)
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).row
     lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
 
+    If lastRow < 1 Or lastCol < 1 Then Exit Sub
+
     ' Format headers
-    ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol)).Font.Bold = True
-    ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol)).Interior.Color = RGB(68, 114, 196)
-    ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol)).Font.Color = RGB(255, 255, 255)
+    With ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol))
+        .Font.Bold = True
+        .Interior.Color = RGB(68, 114, 196)
+        .Font.Color = RGB(255, 255, 255)
+        .HorizontalAlignment = xlCenter
+    End With
 
     ' Freeze panes
     ws.Range("B2").Select

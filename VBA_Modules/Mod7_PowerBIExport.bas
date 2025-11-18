@@ -302,22 +302,34 @@ Private Sub CreateFactScoping()
 
     ' Headers
     factWs.Cells(1, 1).Value = "PackCode"
-    factWs.Cells(1, 2).Value = "FSLI"
-    factWs.Cells(1, 3).Value = "ScopingStatus"
-    factWs.Cells(1, 4).Value = "ScopingMethod"
+    factWs.Cells(1, 2).Value = "PackName"
+    factWs.Cells(1, 3).Value = "FSLI"
+    factWs.Cells(1, 4).Value = "FSLIName"
+    factWs.Cells(1, 5).Value = "ScopingStatus"
+    factWs.Cells(1, 6).Value = "ScopingMethod"
+    factWs.Cells(1, 7).Value = "ScopingReason"
 
-    factWs.Range("A1:D1").Font.Bold = True
-    factWs.Range("A1:D1").Interior.Color = RGB(68, 114, 196)
-    factWs.Range("A1:D1").Font.Color = RGB(255, 255, 255)
+    factWs.Range("A1:G1").Font.Bold = True
+    factWs.Range("A1:G1").Interior.Color = RGB(68, 114, 196)
+    factWs.Range("A1:G1").Font.Color = RGB(255, 255, 255)
 
     row = 2
 
     ' Add scoped packs (automatic/threshold scoping)
     For Each packCode In Mod1_MainController.g_ScopedPacks.Keys
+        Dim packName As String
+        Dim scopingReason As String
+
+        packName = GetPackName(CStr(packCode))
+        scopingReason = Mod1_MainController.g_ScopedPacks(packCode)
+
         factWs.Cells(row, 1).Value = packCode
-        factWs.Cells(row, 2).Value = "ALL" ' Entire pack scoped
-        factWs.Cells(row, 3).Value = "Scoped In"
-        factWs.Cells(row, 4).Value = "Automatic (Threshold)"
+        factWs.Cells(row, 2).Value = packName
+        factWs.Cells(row, 3).Value = "ALL"
+        factWs.Cells(row, 4).Value = "All FSLIs"
+        factWs.Cells(row, 5).Value = "Scoped In"
+        factWs.Cells(row, 6).Value = "Automatic (Threshold)"
+        factWs.Cells(row, 7).Value = scopingReason
 
         row = row + 1
     Next packCode
@@ -327,10 +339,21 @@ Private Sub CreateFactScoping()
         Dim parts() As String
         parts = Split(CStr(fsliKey), "|")
 
-        factWs.Cells(row, 1).Value = parts(0) ' Pack Code
-        factWs.Cells(row, 2).Value = parts(1) ' FSLI
-        factWs.Cells(row, 3).Value = Mod1_MainController.g_ManualScoping(fsliKey)
-        factWs.Cells(row, 4).Value = "Manual"
+        Dim manualPackCode As String
+        Dim manualPackName As String
+        Dim manualFSLI As String
+
+        manualPackCode = parts(0)
+        manualFSLI = parts(1)
+        manualPackName = GetPackName(manualPackCode)
+
+        factWs.Cells(row, 1).Value = manualPackCode
+        factWs.Cells(row, 2).Value = manualPackName
+        factWs.Cells(row, 3).Value = manualPackCode
+        factWs.Cells(row, 4).Value = manualFSLI
+        factWs.Cells(row, 5).Value = Mod1_MainController.g_ManualScoping(fsliKey)
+        factWs.Cells(row, 6).Value = "Manual"
+        factWs.Cells(row, 7).Value = "Manually scoped by user"
 
         row = row + 1
     Next fsliKey
@@ -497,21 +520,22 @@ Private Function ExtractPackCode(packNameWithCode As String) As String
 End Function
 
 Private Function DetermineFSLICategory(fsli As String) As String
+    '------------------------------------------------------------------------
     ' Determine if FSLI belongs to Income Statement or Balance Sheet
-    ' Simple heuristic implementation
-    Dim fsliUpper As String
-    fsliUpper = UCase(fsli)
+    ' Uses FSLI types dictionary from Mod3
+    '------------------------------------------------------------------------
+    Dim fsliTypes As Object
+    Set fsliTypes = Mod3_DataExtraction.GetFSLITypes()
 
-    If InStr(fsliUpper, "REVENUE") > 0 Or InStr(fsliUpper, "INCOME") > 0 Or _
-       InStr(fsliUpper, "EXPENSE") > 0 Or InStr(fsliUpper, "COST") > 0 Or _
-       InStr(fsliUpper, "PROFIT") > 0 Then
-        DetermineFSLICategory = "Income Statement"
-    ElseIf InStr(fsliUpper, "ASSET") > 0 Or InStr(fsliUpper, "LIABILITY") > 0 Or _
-           InStr(fsliUpper, "EQUITY") > 0 Or InStr(fsliUpper, "CASH") > 0 Then
-        DetermineFSLICategory = "Balance Sheet"
-    Else
-        DetermineFSLICategory = "Unknown"
+    If Not fsliTypes Is Nothing Then
+        If fsliTypes.exists(fsli) Then
+            DetermineFSLICategory = fsliTypes(fsli)
+            Exit Function
+        End If
     End If
+
+    ' Fallback: Unknown
+    DetermineFSLICategory = "Unknown"
 End Function
 
 Private Function DetermineFSLIAccountNature(fsli As String) As String
@@ -525,4 +549,33 @@ Private Function DetermineFSLIAccountNature(fsli As String) As String
     Else
         DetermineFSLIAccountNature = "Debit"
     End If
+End Function
+
+Private Function GetPackName(packCode As String) As String
+    '------------------------------------------------------------------------
+    ' Look up pack name from Pack Number Company Table
+    '------------------------------------------------------------------------
+    On Error Resume Next
+
+    Dim packWs As Worksheet
+    Dim lastRow As Long
+    Dim row As Long
+
+    Set packWs = Mod1_MainController.g_OutputWorkbook.Worksheets("Pack Number Company Table")
+
+    If Not packWs Is Nothing Then
+        lastRow = packWs.Cells(packWs.Rows.Count, 2).End(xlUp).row
+
+        For row = 2 To lastRow
+            If Trim(packWs.Cells(row, 2).Value) = packCode Then
+                GetPackName = packWs.Cells(row, 1).Value
+                Exit Function
+            End If
+        Next row
+    End If
+
+    ' Fallback
+    GetPackName = packCode
+
+    On Error GoTo 0
 End Function

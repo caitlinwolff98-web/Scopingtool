@@ -118,8 +118,7 @@ Private Function PromptForCategory(tabName As String, currentTab As Long, totalT
     Dim categoryNumber As Long
 
     promptMsg = "TAB CATEGORIZATION (" & currentTab & " of " & totalTabs & ")" & vbCrLf & vbCrLf & _
-                "Tab Name: " & tabName & vbCrLf & _
-                String(60, "-") & vbCrLf & _
+                "Tab Name: " & tabName & vbCrLf & vbCrLf & _
                 "Select category:" & vbCrLf & vbCrLf & _
                 "1. Division (multiple allowed, will prompt for division name)" & vbCrLf & _
                 "2. Discontinued Operations (single tab only)" & vbCrLf & _
@@ -206,8 +205,7 @@ Private Function ConfirmCategorization(tabCategories As Object) As Boolean
 
     ' Build summary message
     summaryMsg = "CATEGORIZATION SUMMARY" & vbCrLf & vbCrLf & _
-                 "Please review the categorization:" & vbCrLf & _
-                 String(60, "-") & vbCrLf
+                 "Please review the categorization:" & vbCrLf & vbCrLf
 
     For Each catName In categoryCount.Keys
         summaryMsg = summaryMsg & catName & ": " & categoryCount(catName) & " tab(s)" & vbCrLf
@@ -217,7 +215,7 @@ Private Function ConfirmCategorization(tabCategories As Object) As Boolean
         summaryMsg = summaryMsg & vbCrLf & "Uncategorized tabs:" & vbCrLf & uncategorizedList & vbCrLf
     End If
 
-    summaryMsg = summaryMsg & vbCrLf & String(60, "-") & vbCrLf & _
+    summaryMsg = summaryMsg & vbCrLf & vbCrLf & _
                  "Are you happy with these categories?" & vbCrLf & vbCrLf & _
                  "Click YES to proceed" & vbCrLf & _
                  "Click NO to recategorize all tabs"
